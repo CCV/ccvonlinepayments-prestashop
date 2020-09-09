@@ -1,0 +1,26 @@
+{
+  "name": "ccvonlinepayments/prestashop",
+  "description": "CCVOnlinePayments for Prestashop",
+  "homepage": "https://www.ccvshop.nl/ccv-online-payments",
+  "type": "prestashop-module",
+  "version": "1.0.0",
+  "require": {
+    "ccvonlinepayments/lib": "^1.0"
+  },
+  "require-dev": {
+    "ccvonlinepayments/images": "^1.0"
+  },
+  "config": {
+    "preferred-install": "dist"
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../lib/"
+    },
+    {
+      "type": "path",
+      "url": "../images/"
+    }
+  ]
+}
