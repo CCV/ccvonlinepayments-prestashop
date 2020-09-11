@@ -25,7 +25,7 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         }
 
         if(!$enabled) {
-            $errors[] = $this->trans('This payment method is not available.', [],"Modules.Ccvonlinepayments.Shop");
+            $errors[] = $this->trans('This payment method is not available.', [], "Modules.Ccvonlinepayments.Shop");
         }
 
         $amount = $cart->getOrderTotal(
@@ -115,7 +115,13 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         $paymentRequest->setBrowserFromServer();
         $paymentRequest->setBrowserIpAddress(Tools::getRemoteAddr());
 
-        $paymentResponse = $ccvOnlinePaymentsApi->createPayment($paymentRequest);
+        try {
+            $paymentResponse = $ccvOnlinePaymentsApi->createPayment($paymentRequest);
+        }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
+            $this->errors[] = $this->trans("There was an unexpected error processing your payment", [], "Modules.Ccvonlinepayments.Shop");
+            $this->redirectWithNotifications($this->context->link->getPagelink('order', true, null, array('step' => 3)));
+            return;
+        }
 
         Db::getInstance()->insert(
             'ccvonlinepayments_payments',

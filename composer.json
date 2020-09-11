@@ -3,7 +3,7 @@
   "description": "CCVOnlinePayments for Prestashop",
   "homepage": "https://www.ccvshop.nl/ccv-online-payments",
   "type": "prestashop-module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "require": {
     "ccvonlinepayments/lib": "^1.0"
   },
