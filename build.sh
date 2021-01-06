@@ -24,5 +24,5 @@ do
 done
 
 cd $(pwd)/build/
-zip -r ccvonlinepayments.zip ccvonlinepayments
+zip -9 -r ccvonlinepayments.zip ccvonlinepayments
 cd ../
