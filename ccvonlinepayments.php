@@ -28,8 +28,8 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.0';
-        $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '1.7.6.999');
+        $this->version = '1.1.1';
+        $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '1.7.7.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
         $this->is_eu_compatible = 1;
