@@ -28,7 +28,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.1';
+        $this->version = '1.2.0';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '1.7.7.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -58,7 +58,7 @@ class CcvOnlinePayments extends PaymentModule
             die('CCV OnlinePayments requires php 7.2 or greater.');
         }
 
-        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn')) {
+        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('actionOrderSlipAdd')) {
             return false;
         }
 
@@ -891,4 +891,41 @@ class CcvOnlinePayments extends PaymentModule
         return $this->_path."images/methods/".$methodId.".png";
     }
 
+    public function hookActionOrderSlipAdd($params = [])
+    {
+        if ($params['order']->module !== 'ccvonlinepayments') {
+            return false;
+        }
+
+        $payment = Db::getInstance()->getRow(sprintf(
+            "SELECT payment_reference FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s'",
+            pSQL($params['order']->reference)
+        ));
+        $paymentReference = isset($payment['payment_reference']) ? $payment['payment_reference'] : "";
+
+        if($paymentReference == "") {
+            return false;
+        }
+
+        $refundAmount = 0;
+        foreach ($params['productList'] as $productListItem) {
+            $refundAmount += $productListItem['amount'];
+        }
+        $refundAmount += floatval(str_replace(',', '.', Tools::getValue('partialRefundShippingCost')));
+
+        $refundRequest = new \CCVOnlinePayments\Lib\RefundRequest();
+        $refundRequest->setAmount($refundAmount);
+        $refundRequest->setReference($paymentReference);
+
+        $session = $this->get('session');
+        try {
+            $refundResponse = $this->getApi()->createRefund($refundRequest);
+        }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
+            $session->getFlashBag()->add('error', $this->l("The partial refund has been created, but we failed to create a refund at CCV Online Payments: ").$apiException->getMessage());
+            return false;
+        }
+
+        $session->getFlashBag()->add('success', $this->l("The refunded has been created at CCV Online Payments"));
+        return true;
+    }
 }
