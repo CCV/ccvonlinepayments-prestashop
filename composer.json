@@ -1,26 +1,18 @@
 {
   "name": "ccv/prestashop",
-  "description": "CCVOnlinePayments for Prestashop",
-  "homepage": "https://www.ccv.eu/nl/betaaloplossingen/betaaloplossingen-online/ccv-online-payments/",
+  "description": "Official CCV Payment Services plugin for PrestaShop",
+  "keywords": ["plugin", "payments", "prestashop", "ccv"],
+  "homepage": "https://github.com/CCV/ccvonlinepayments-prestashop/",
+  "license": "MIT",
   "type": "prestashop-module",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "require": {
-    "ccv/lib": "^1.2"
+    "ccv/php-lib": "^1.2.1"
   },
   "require-dev": {
     "ccv/images": "^1.1"
   },
   "config": {
     "preferred-install": "dist"
-  },
-  "repositories": [
-    {
-      "type": "path",
-      "url": "../lib/"
-    },
-    {
-      "type": "path",
-      "url": "../images/"
-    }
-  ]
+  }
 }
