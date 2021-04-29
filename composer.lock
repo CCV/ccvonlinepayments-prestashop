@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "41cb9c7aa2c1dc8dd38411c76e6e74c4",
+    "content-hash": "0e4ca16f625f0df1db17f8628d5a6b4c",
     "packages": [
         {
             "name": "brick/phonenumber",
@@ -54,11 +54,17 @@
         },
         {
             "name": "ccv/php-lib",
-            "version": "1.2.1",
+            "version": "1.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CCV/ccvonlinepayments-php-lib.git",
+                "reference": "650144d872ecebc677e66a94bbcc0c866f5e7503"
+            },
             "dist": {
-                "type": "path",
-                "url": "../lib",
-                "reference": "54bd703e87bed87eabcbce4dd6a7a8ef9c98a882"
+                "type": "zip",
+                "url": "https://api.github.com/repos/CCV/ccvonlinepayments-php-lib/zipball/650144d872ecebc677e66a94bbcc0c866f5e7503",
+                "reference": "650144d872ecebc677e66a94bbcc0c866f5e7503",
+                "shasum": ""
             },
             "require": {
                 "brick/phonenumber": "0.1.*",
@@ -74,6 +80,7 @@
                     "CCVOnlinePayments\\Lib\\": "src/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -85,22 +92,24 @@
                 "payments",
                 "php"
             ],
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/CCV/ccvonlinepayments-php-lib/issues",
+                "source": "https://github.com/CCV/ccvonlinepayments-php-lib/tree/v1.2.3"
+            },
+            "time": "2021-04-29T13:55:20+00:00"
         },
         {
             "name": "giggsey/libphonenumber-for-php",
-            "version": "8.12.19",
+            "version": "8.12.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/giggsey/libphonenumber-for-php.git",
-                "reference": "f3c196dcb3e76e456783a38bab87d99b4d727918"
+                "reference": "dc9992c35e52235c36241ebb5ddc280ceebe3c09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/f3c196dcb3e76e456783a38bab87d99b4d727918",
-                "reference": "f3c196dcb3e76e456783a38bab87d99b4d727918",
+                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/dc9992c35e52235c36241ebb5ddc280ceebe3c09",
+                "reference": "dc9992c35e52235c36241ebb5ddc280ceebe3c09",
                 "shasum": ""
             },
             "require": {
@@ -114,7 +123,7 @@
                 "pear/versioncontrol_git": "^0.5",
                 "phing/phing": "^2.7",
                 "php-coveralls/php-coveralls": "^1.0|^2.0",
-                "symfony/console": "^2.8|^3.0",
+                "symfony/console": "^2.8|^3.0|^v4.4|^v5.2",
                 "symfony/phpunit-bridge": "^4.2 || ^5"
             },
             "type": "library",
@@ -160,7 +169,7 @@
                 "issues": "https://github.com/giggsey/libphonenumber-for-php/issues",
                 "source": "https://github.com/giggsey/libphonenumber-for-php"
             },
-            "time": "2021-03-01T16:07:56+00:00"
+            "time": "2021-04-29T07:34:59+00:00"
         },
         {
             "name": "giggsey/locale",
@@ -217,16 +226,16 @@
         },
         {
             "name": "php-curl-class/php-curl-class",
-            "version": "8.9.0",
+            "version": "8.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-curl-class/php-curl-class.git",
-                "reference": "a40cc77eb45bc6489240415197734ca747ce4820"
+                "reference": "45db373722c983f4c65269b92e1c351ee390c292"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/a40cc77eb45bc6489240415197734ca747ce4820",
-                "reference": "a40cc77eb45bc6489240415197734ca747ce4820",
+                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/45db373722c983f4c65269b92e1c351ee390c292",
+                "reference": "45db373722c983f4c65269b92e1c351ee390c292",
                 "shasum": ""
             },
             "require": {
@@ -282,9 +291,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-curl-class/php-curl-class/issues",
-                "source": "https://github.com/php-curl-class/php-curl-class/tree/8.9.0"
+                "source": "https://github.com/php-curl-class/php-curl-class/tree/8.9.2"
             },
-            "time": "2020-11-01T03:47:32+00:00"
+            "time": "2021-03-17T14:47:06+00:00"
         },
         {
             "name": "psr/log",
@@ -421,26 +430,35 @@
         {
             "name": "ccv/images",
             "version": "1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CCV/ccvonlinepayments-images.git",
+                "reference": "5e8a8193abc804f7ae6e0a972f811f2f5ba378bf"
+            },
             "dist": {
-                "type": "path",
-                "url": "../images",
-                "reference": "619ae7bc774727d0e2c3985664536f40eb35679f"
+                "type": "zip",
+                "url": "https://api.github.com/repos/CCV/ccvonlinepayments-images/zipball/5e8a8193abc804f7ae6e0a972f811f2f5ba378bf",
+                "reference": "5e8a8193abc804f7ae6e0a972f811f2f5ba378bf",
+                "shasum": ""
             },
             "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
-            "description": "Payment resources library used by the official CCV Payment Services plugins ",
+            "description": "Payment resources library used by the official CCV Payment Services plugins",
             "homepage": "https://github.com/CCV/ccvonlinepayments-images",
             "keywords": [
                 "ccv",
                 "library",
                 "payments",
-                "php"
+                "resources"
             ],
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/CCV/ccvonlinepayments-images/issues",
+                "source": "https://github.com/CCV/ccvonlinepayments-images/tree/v1.1.1"
+            },
+            "time": "2021-03-11T14:41:48+00:00"
         }
     ],
     "aliases": [],
