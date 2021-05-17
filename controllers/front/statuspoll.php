@@ -14,6 +14,6 @@ class CcvOnlinePaymentsStatusPollModuleFrontController extends ModuleFrontContro
             "SELECT status FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s' AND `cart_id`='%s'",
             pSQL($ref),
             pSQL($cartId)
-        ))));
+        ), false)));
     }
 }

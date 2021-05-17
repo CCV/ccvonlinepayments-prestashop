@@ -12,15 +12,17 @@ class CcvOnlinePaymentsReturnModuleFrontController extends ModuleFrontController
         $ref    = Tools::getValue('ref');
         $cartId = Tools::getValue("cartId");
 
-        require_once __DIR__."/webhook.php";
-        $webhookController = new CcvOnlinePaymentsWebhookModuleFrontController();
-        $paymentStatus = $webhookController->processTransaction($ref, $cartId);
+        $payment = Db::getInstance()->getRow(sprintf(
+            "SELECT status FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s' AND `cart_id`='%s'",
+            pSQL($ref),
+            pSQL($cartId)
+        ), false);
 
-        if($paymentStatus === null) {
+        if($payment === false) {
             return;
         }
 
-        switch($paymentStatus->getStatus()) {
+        switch($payment['status']) {
             case \CCVOnlinePayments\Lib\PaymentStatus::STATUS_SUCCESS:
                 $cart = new Cart($cartId);
                 Tools::redirect(
