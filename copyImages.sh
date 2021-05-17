@@ -3,7 +3,7 @@ rm -Rf $(pwd)/images
 mkdir $(pwd)/images
 mkdir $(pwd)/images/methods
 
-cp -Rf $(pwd)/vendor/ccv/images/logo.png $(pwd)/logo.png
+cp -Rf $(pwd)/vendor/ccv/images/logosquare.png $(pwd)/logo.png
 cp -Rf $(pwd)/vendor/ccv/images/methods/*.png $(pwd)/images/methods
 
 cd $(pwd)/images/methods;

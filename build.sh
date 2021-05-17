@@ -8,6 +8,7 @@ mkdir $(pwd)/build
 mkdir $(pwd)/build/ccvonlinepayments
 
 cp -LR $(pwd)/composer.json $(pwd)/build/ccvonlinepayments/
+cp -LR $(pwd)/logo.png $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/config.xml $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/index.php $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/ccvonlinepayments.php $(pwd)/build/ccvonlinepayments/
