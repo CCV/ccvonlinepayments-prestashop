@@ -9,11 +9,11 @@ class CcvOnlinePaymentsWebhookModuleFrontController extends ModuleFrontControlle
         $ref    = Tools::getValue('ref');
         $cartId = Tools::getValue("cartId");
 
-        Logger::addLog('CCVOnlinePayments webhook: $ref/$cartId');
+        Logger::addLog("CCVOnlinePayments webhook: $ref/$cartId");
 
         $paymentStatus = $this->processTransaction($ref, $cartId, true);
 
-        Logger::addLog('CCVOnlinePayments webhook status: $ref/$cartId status:'.$paymentStatus->getStatus().", amount:".$paymentStatus->getAmount());
+        Logger::addLog("CCVOnlinePayments webhook status: $ref/$cartId status:".$paymentStatus->getStatus().", amount:".$paymentStatus->getAmount());
 
         die("OK");
     }
