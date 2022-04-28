@@ -87,7 +87,7 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
             $paymentRequest->setBrand($issuer);
         }
 
-        $paymentRequest->setScaReady(true);
+        $paymentRequest->setScaReady(false);
 
         $invoiceAddress = new Address($cart->id_address_invoice);
         $paymentRequest->setBillingAddress($invoiceAddress->address1);
