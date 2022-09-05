@@ -3,6 +3,12 @@
 composer install
 bash copyImages.sh
 
+PACKAGE_VERSION=$(cat composer.json \
+  | grep version \
+  | head -1 \
+  | awk -F: '{ print $2 }' \
+  | sed 's/[", ]//g')
+
 rm -Rf $(pwd)/build
 mkdir $(pwd)/build
 mkdir $(pwd)/build/ccvonlinepayments
@@ -26,5 +32,5 @@ do
 done
 
 cd $(pwd)/build/
-zip -9 -r ccvonlinepayments.zip ccvonlinepayments
+zip -9 -r ccvonlinepayments-prestashop-$PACKAGE_VERSION.zip ccvonlinepayments
 cd ../
