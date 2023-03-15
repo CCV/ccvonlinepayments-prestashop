@@ -28,7 +28,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.6';
+        $this->version = '1.3.0';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '8.0.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -58,7 +58,7 @@ class CcvOnlinePayments extends PaymentModule
             die('CCV OnlinePayments requires php 7.2 or greater.');
         }
 
-        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('actionOrderSlipAdd')) {
+        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('actionOrderSlipAdd') || !$this->registerHook('actionOrderHistoryAddAfter')) {
             return false;
         }
 
@@ -69,6 +69,8 @@ class CcvOnlinePayments extends PaymentModule
 				`cart_id`           INT(64),
 				`status`            VARCHAR(24),
 				`method`            VARCHAR(24),
+				`transaction_type`  VARCHAR(16) NULL,
+				`capture_reference` VARCHAR(64) NULL,
 				 INDEX (cart_id)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;
         ');
@@ -106,6 +108,7 @@ class CcvOnlinePayments extends PaymentModule
             case "payconiq":        $methodName = $this->trans("Payconiq",                      [], "Modules.Ccvonlinepayments.Shop"); break;
             case "eps":             $methodName = $this->trans("Eps",                           [], "Modules.Ccvonlinepayments.Shop"); break;
             case "alipay":          $methodName = $this->trans("AliPay",                        [], "Modules.Ccvonlinepayments.Shop"); break;
+            case "klarna":          $methodName = $this->trans("Klarna",                        [], "Modules.Ccvonlinepayments.Shop"); break;
         }
 
         return $methodName;
@@ -199,6 +202,7 @@ class CcvOnlinePayments extends PaymentModule
     public function getContent()
     {
         $output = null;
+        $this->context->controller->addJqueryPlugin('select2');
 
         if (Tools::isSubmit('submit'.$this->name)) {
             $apiKey = strval(Tools::getValue('API_KEY'));
@@ -212,6 +216,9 @@ class CcvOnlinePayments extends PaymentModule
             } else {
                 Configuration::updateValue('CCVONLINEPAYMENTS_API_KEY', $apiKey);
 
+                Configuration::updateValue('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE', implode(",",Tools::getValue('ORDER_STATUS_CAPTURE',[])));
+                Configuration::updateValue('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL', implode(",",Tools::getValue('ORDER_STATUS_REVERSAL',[])));
+
                 foreach(Tools::getAllValues() as $key => $value) {
                     if(strpos($key,"METHOD_ACTIVE_") === 0) {
                         Configuration::updateValue('CCVONLINEPAYMENTS_'.$key, $value != "");
@@ -222,12 +229,15 @@ class CcvOnlinePayments extends PaymentModule
             }
         }
 
-        return $output.$this->displayForm();
+        return  $output.
+                $this->display(__FILE__, 'views/templates/admin/configure.tpl').
+                $this->displayForm();
     }
 
     public function displayForm()
     {
         $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
+        $orderStates = $this->getOrderStates();
 
         $helper = new HelperForm();
 
@@ -243,6 +253,30 @@ class CcvOnlinePayments extends PaymentModule
                     'name' => 'API_KEY',
                     'size' => 64,
                     'required' => true
+                ],[
+                    'tab' => 'order_management_config',
+                    'class' => 'ccv_select2',
+                    'type' => 'select',
+                    'name' => 'ORDER_STATUS_CAPTURE[]',
+                    'label' => $this->l('Capture Order Status'),
+                    'options' => array(
+                        'query'     => $orderStates,
+                        'id'        => 'id',
+                        'name'      => 'name'
+                    ),
+                    'multiple' => true,
+                ],[
+                    'tab' => 'order_management_config',
+                    'class' => 'ccv_select2',
+                    'type' => 'select',
+                    'name' => 'ORDER_STATUS_REVERSAL[]',
+                    'label' => $this->l('Reversal Order Status'),
+                    'options' => array(
+                        'query'     => $orderStates,
+                        'id'        => 'id',
+                        'name'      => 'name'
+                    ),
+                    'multiple' => true,
                 ]
             ],
             'submit' => [
@@ -253,6 +287,10 @@ class CcvOnlinePayments extends PaymentModule
 
         $apiKey = Tools::getValue('API_KEY', Configuration::get('CCVONLINEPAYMENTS_API_KEY'));
         $helper->fields_value['API_KEY'] = $apiKey;
+
+        $helper->fields_value['ORDER_STATUS_CAPTURE[]'] = explode(",",Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE'));
+        $helper->fields_value['ORDER_STATUS_REVERSAL[]'] = explode(",",Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL'));
+
         if(trim($apiKey) !== "") {
             $api = $this->getApi($apiKey);
 
@@ -898,13 +936,38 @@ class CcvOnlinePayments extends PaymentModule
         }
 
         $payment = Db::getInstance()->getRow(sprintf(
-            "SELECT payment_reference FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s'",
+            "SELECT payment_reference, method, transaction_type, capture_reference FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s'",
             pSQL($params['order']->reference)
         ));
-        $paymentReference = isset($payment['payment_reference']) ? $payment['payment_reference'] : "";
 
-        if($paymentReference == "") {
+        if(isset($payment['transaction_type']) && $payment['transaction_type'] === \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE) {
+            $refundPaymentReference = isset($payment['capture_reference']) ? $payment['capture_reference'] : "";
+        }else{
+            $refundPaymentReference = isset($payment['payment_reference']) ? $payment['payment_reference'] : "";
+        }
+
+        if($refundPaymentReference == "") {
             return false;
+        }
+
+        $method = null;
+        foreach($this->getApi()->getMethods() as $m) {
+            if($m->getId() === $payment['method']) {
+                $method = $m;
+            }
+        }
+
+        if($method === null) {
+            return;
+        }
+
+        if(Tools::getValue('partialRefundShippingCost')) {
+            $shippingCost = floatval(str_replace(',', '.', Tools::getValue('partialRefundShippingCost')));
+        }elseif(Tools::getValue('cancel_product')) {
+            $cancelProduct = Tools::getValue('cancel_product');
+            $shippingCost = floatval(str_replace(',', '.', $cancelProduct['shipping_amount'] ?? 0));
+        }else{
+            $shippingCost = 0;
         }
 
         $refundAmount = 0;
@@ -913,9 +976,14 @@ class CcvOnlinePayments extends PaymentModule
         }
         $refundAmount += floatval(str_replace(',', '.', Tools::getValue('partialRefundShippingCost')));
 
+
         $refundRequest = new \CCVOnlinePayments\Lib\RefundRequest();
         $refundRequest->setAmount($refundAmount);
-        $refundRequest->setReference($paymentReference);
+        $refundRequest->setReference($refundPaymentReference);
+
+        if($method->isOrderLinesRequired()) {
+            $refundRequest->setOrderLines($this->getOrderlinesByOrder($params['order'], $params['productList'], $shippingCost));
+        }
 
         $session = $this->get('session');
         try {
@@ -928,4 +996,191 @@ class CcvOnlinePayments extends PaymentModule
         $session->getFlashBag()->add('success', $this->l("The refunded has been created at CCV Online Payments"));
         return true;
     }
+
+    protected function getOrderStates() {
+        $states = OrderState::getOrderStates((int)$this->context->language->id);
+
+        $retVal = [];
+        foreach ($states as $state) {
+            $retVal[] = [
+                'id'        => $state['id_order_state'],
+                'name'      => $state['name'],
+            ];
+        }
+
+        return $retVal;
+    }
+
+    public function getOrderlinesByCart($cart) {
+        $orderLines = [];
+
+        foreach($cart->getProducts() as $cartProduct) {
+            $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
+            $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_PHYSICAL);
+            $orderLine->setName($cartProduct['name']);
+            $orderLine->setQuantity($cartProduct['cart_quantity']);
+            $orderLine->setTotalPrice(Tools::ps_round($cartProduct['total_wt'], 2));
+            $orderLine->setUnit('pcs');
+            $orderLine->setUnitPrice(Tools::ps_round($cartProduct['price_wt'], 2));
+            $orderLine->setVatRate($cartProduct['rate']);
+            $orderLine->setVat(($cartProduct['price_wt'] - $cartProduct['price']) * $cartProduct['quantity']);
+            $orderLines[] = $orderLine;
+        }
+
+        $shippingCost = $cart->getOrderTotal(true, Cart::ONLY_SHIPPING);
+        if ($shippingCost > 0) {
+            $carrier = new Carrier($cart->id_carrier);
+            $carrieraddress = new Address($cart->id_address_delivery);
+            $vatRate = $carrier->getTaxesRate($carrieraddress);
+
+            $shippingCostExclVat = $cart->getOrderTotal(true, Cart::ONLY_SHIPPING);
+            $vatAmount = Tools::ps_round($shippingCost - $shippingCostExclVat, 2);
+
+            $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
+            $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_SHIPPING_FEE);
+            $orderLine->setName("Shipping");
+            $orderLine->setQuantity(1);;
+            $orderLine->setTotalPrice($shippingCost);
+            $orderLine->setVat($vatAmount);
+            $orderLine->setVatRate($vatRate);
+            $orderLine->setUnitPrice($shippingCost);
+            $orderLines[] = $orderLine;
+        }
+
+        /* Add discounts */
+        if ($cart->getOrderTotal(true, Cart::ONLY_DISCOUNTS) > 0) {
+            $rules = $cart->getCartRules(CartRule::FILTER_ACTION_ALL, false);
+
+            foreach($rules as $rule) {
+                $vatRate = (($rule["value_real"] / $rule["value_tax_exc"]) - 1) * 100;
+                $vatRate = Tools::ps_round($vatRate, 2);
+                $value   = Tools::ps_round($rule["value_real"], 2);
+
+                if($value > 0) {
+                    $vatValue = $value - ($value / (1 + ($vatRate / 100)));
+                    $vatValue = Tools::ps_round($vatValue, 2);
+                }else{
+                    $vatValue = 0;
+                }
+
+                $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
+                $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_DISCOUNT);
+                $orderLine->setName($rule['name']);
+                $orderLine->setQuantity(1);;
+                $orderLine->setTotalPrice($value);
+                $orderLine->setVat($vatValue);
+                $orderLine->setVatRate($vatRate);
+                $orderLine->setUnitPrice($value);
+                $orderLines[] = $orderLine;
+            }
+        }
+
+        return $orderLines;
+    }
+
+    public function getOrderlinesByOrder($order, $productList, $partialRefundShippingCost) {
+        $orderLines = [];
+
+        foreach($order->getProducts() as $orderProduct) {
+            $productListItem = $productList[$orderProduct['id_order_detail']] ?? 0;
+
+            if($productListItem['quantity'] > 0) {
+                $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
+                $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_PHYSICAL);
+                $orderLine->setName($orderProduct['product_name']);
+                $orderLine->setQuantity($productListItem['quantity']);
+                $orderLine->setTotalPrice($productListItem['total_refund_tax_incl']);
+                $orderLine->setUnit('pcs');
+                $orderLine->setVatRate($orderProduct['tax'] * 100);
+                $orderLine->setVat($productListItem['total_refund_tax_incl'] - $productListItem['total_refund_tax_excl']);
+                $orderLines[] = $orderLine;
+            }
+        }
+
+        $shippingCost = $partialRefundShippingCost;
+        if ($shippingCost > 0) {
+            $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
+            $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_SHIPPING_FEE);
+            $orderLine->setName("Shipping");
+            $orderLine->setQuantity(1);;
+            $orderLine->setTotalPrice($shippingCost);
+            $orderLine->setUnitPrice($shippingCost);
+            $orderLines[] = $orderLine;
+        }
+
+        return $orderLines;
+    }
+
+    public function hookActionOrderHistoryAddAfter($params)
+    {
+        $orderHistory = $params['order_history'];
+
+        $newOrderStateId  = (int)$orderHistory->id_order_state;
+        $orderId        = $orderHistory->id_order;
+
+        if ($orderId < 1) {
+            return;
+        }
+
+        if (!Validate::isLoadedObject($orderHistory)) {
+            return;
+        }
+
+        $order = new Order((int) $orderId);
+
+        if ($order->module !== 'ccvonlinepayments') {
+            return false;
+        }
+
+        $payment = Db::getInstance()->getRow(sprintf(
+            "SELECT payment_reference,transaction_type  FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s'",
+            pSQL($order->reference)
+        ));
+
+        if($payment['transaction_type'] !== \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE) {
+            return false;
+        }
+
+        $captureStates = explode(',', Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE'));
+        $reversalStates = explode(',', Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL'));
+
+        try {
+            if (in_array($newOrderStateId, $captureStates)) {
+                $this->capture($order, $payment['payment_reference']);
+            } elseif (in_array($newOrderStateId, $reversalStates)) {
+                $this->reversal($order, $payment['payment_reference']);
+            }
+        }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
+            $session = $this->get('session');
+            if($session !== null) {
+                $session->getFlashBag()->add('error', $apiException->getMessage());
+            }
+        }
+    }
+
+    private function capture($order, $paymentReference) {
+        $captureRequest = new \CCVOnlinePayments\Lib\CaptureRequest();
+        $captureRequest->setReference($paymentReference);
+        $captureRequest->setAmount($order->total);
+        $captureResponse = $this->getApi()->createCapture($captureRequest);
+
+        Db::getInstance()->update(
+            'ccvonlinepayments_payments',
+            array(
+                "capture_reference" => $captureResponse->getReference()
+            ),
+            sprintf(
+                "`payment_reference`='%s'",
+                pSQL($paymentReference)
+            )
+        );
+    }
+
+    private function reversal($order, $paymentReference) {
+        $reversalRequest = new \CCVOnlinePayments\Lib\ReversalRequest();
+        $reversalRequest->setReference($paymentReference);
+        $this->getApi()->createReversal($reversalRequest);
+    }
+
+
 }

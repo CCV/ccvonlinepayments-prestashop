@@ -49,7 +49,18 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
 
         $ccvOnlinePaymentsApi = $this->module->getApi();
 
+        $methodId = Tools::getValue('method');
+        $method = $ccvOnlinePaymentsApi->getMethodById($methodId);
+        if($method->isTransactionTypeSaleSupported()) {
+            $transactionType = \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_SALE;
+        }elseif($method->isTransactionTypeAuthoriseSupported()){
+            $transactionType = \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE;
+        }else{
+            throw new \Exception("No transaction types supported");
+        }
+
         $paymentRequest = new \CCVOnlinePayments\Lib\PaymentRequest();
+        $paymentRequest->setTransactionType($transactionType);
         $paymentRequest->setAmount($amount);
         $paymentRequest->setCurrency(Tools::strtoupper($this->context->currency->iso_code));
         $paymentRequest->setMerchantOrderReference($orderReference);
@@ -75,11 +86,10 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         $paymentRequest->setLanguage($language);
 
 
-        $method     = Tools::getValue('method');
-        $issuerKey  = Tools::getValue('issuerKey_'.$method);
-        $issuer     = Tools::getValue('issuer_'.$method);
+        $issuerKey  = Tools::getValue('issuerKey_'.$methodId);
+        $issuer     = Tools::getValue('issuer_'.$methodId);
 
-        $paymentRequest->setMethod($method);
+        $paymentRequest->setMethod($methodId);
 
         if($issuerKey === "issuerid") {
             $paymentRequest->setIssuer($issuer);
@@ -96,6 +106,8 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         $paymentRequest->setBillingCountry((new Country($invoiceAddress->id_country))->iso_code);
         $paymentRequest->setBillingState((new State($invoiceAddress->id_state))->iso_code);
         $paymentRequest->setBillingPhoneNumber($invoiceAddress->phone);
+        $paymentRequest->setBillingLastName($invoiceAddress->lastname);
+        $paymentRequest->setBillingFirstName($invoiceAddress->firstname);
 
         $deliveryAddress = new Address($cart->id_address_delivery);
         $paymentRequest->setShippingAddress($deliveryAddress->address1);
@@ -103,6 +115,9 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         $paymentRequest->setShippingPostalCode($deliveryAddress->postcode);
         $paymentRequest->setShippingCountry((new Country($deliveryAddress->id_country))->iso_code);
         $paymentRequest->setShippingState((new State($deliveryAddress->id_state))->iso_code);
+        $paymentRequest->setShippingLastName($deliveryAddress->lastname);
+        $paymentRequest->setShippingFirstName($deliveryAddress->firstname);
+
 
         $customer = new Customer($cart->id_customer);
         $paymentRequest->setAccountInfoAccountIdentifier($customer->id);
@@ -112,8 +127,15 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         $paymentRequest->setAccountInfoHomePhoneNumber($invoiceAddress->phone);
         $paymentRequest->setAccountInfoMobilePhoneNumber($invoiceAddress->phone_mobile);
 
+        $paymentRequest->setBillingEmail($customer->email);
+        $paymentRequest->setShippingEmail($customer->email);
+
         $paymentRequest->setBrowserFromServer();
         $paymentRequest->setBrowserIpAddress(Tools::getRemoteAddr());
+
+        if($method->isOrderLinesRequired()) {
+            $paymentRequest->setOrderLines($this->module->getOrderLinesByCart($cart));
+        }
 
         try {
             $paymentResponse = $ccvOnlinePaymentsApi->createPayment($paymentRequest);
@@ -130,7 +152,8 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
                 'payment_reference' => pSQL($paymentResponse->getReference()),
                 'cart_id'           => (int) $cart->id,
                 'status'            => 'pending',
-                'method'            => $method,
+                'method'            => $method->getId(),
+                'transaction_type'  => $transactionType
             )
         );
 
