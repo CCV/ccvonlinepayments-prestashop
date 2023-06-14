@@ -20,6 +20,7 @@ cp -LR $(pwd)/index.php $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/ccvonlinepayments.php $(pwd)/build/ccvonlinepayments/
 
 cp -LR $(pwd)/controllers $(pwd)/build/ccvonlinepayments/
+cp -LR $(pwd)/translations $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/upgrade $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/images $(pwd)/build/ccvonlinepayments/
 cp -LR $(pwd)/src $(pwd)/build/ccvonlinepayments/

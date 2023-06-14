@@ -253,30 +253,6 @@ class CcvOnlinePayments extends PaymentModule
                     'name' => 'API_KEY',
                     'size' => 64,
                     'required' => true
-                ],[
-                    'tab' => 'order_management_config',
-                    'class' => 'ccv_select2',
-                    'type' => 'select',
-                    'name' => 'ORDER_STATUS_CAPTURE[]',
-                    'label' => $this->l('Capture Order Status'),
-                    'options' => array(
-                        'query'     => $orderStates,
-                        'id'        => 'id',
-                        'name'      => 'name'
-                    ),
-                    'multiple' => true,
-                ],[
-                    'tab' => 'order_management_config',
-                    'class' => 'ccv_select2',
-                    'type' => 'select',
-                    'name' => 'ORDER_STATUS_REVERSAL[]',
-                    'label' => $this->l('Reversal Order Status'),
-                    'options' => array(
-                        'query'     => $orderStates,
-                        'id'        => 'id',
-                        'name'      => 'name'
-                    ),
-                    'multiple' => true,
                 ]
             ],
             'submit' => [
@@ -307,7 +283,7 @@ class CcvOnlinePayments extends PaymentModule
                         $imageCode = "<img src='".htmlspecialchars($this->getMethodImagePath($method->getId()))."' style='max-height:80%'> ";
                     }
 
-                    $fieldsForm[]['form'] = [
+                    $formFields = [
                         'legend' => [
                             'title' => $imageCode.$this->getMethodNameById($method->getName()),
                         ],
@@ -337,6 +313,39 @@ class CcvOnlinePayments extends PaymentModule
                             'class' => 'btn btn-default pull-right'
                         ],
                     ];
+
+                    if($method->getName() === "klarna") {
+                        $formFields['input'][] = [
+                            'tab' => 'order_management_config',
+                            'class' => 'ccv_select2',
+                            'type' => 'select',
+                            'name' => 'ORDER_STATUS_CAPTURE[]',
+                            'desc' => $this->trans("Choose the order statuses that should trigger a 'capture'. For orders that are paid with Klarna a capture needs to take please after delivery to the consumer. Common statuses are 'delivered' or 'shipped'.", [], "Modules.Ccvonlinepayments.Admin"),
+                            'label' => $this->trans('Capture Order Status', [], "Modules.Ccvonlinepayments.Admin"),
+                            'options' => array(
+                                'query'     => $orderStates,
+                                'id'        => 'id',
+                                'name'      => 'name'
+                            ),
+                            'multiple' => true,
+                        ];
+                        $formFields['input'][] = [
+                            'tab' => 'order_management_config',
+                            'class' => 'ccv_select2',
+                            'type' => 'select',
+                            'name' => 'ORDER_STATUS_REVERSAL[]',
+                            'desc' => $this->trans("Choose the order statuses that should cancel/reserve an already started authorization. A common status is 'Cancelled'. Please note that a reversal can only take place for the parts of an order that have not yet been captured.", [], "Modules.Ccvonlinepayments.Admin"),
+                            'label' => $this->trans('Reversal Order Status', [], "Modules.Ccvonlinepayments.Admin"),
+                            'options' => array(
+                                'query'     => $orderStates,
+                                'id'        => 'id',
+                                'name'      => 'name'
+                            ),
+                            'multiple' => true,
+                        ];
+                    }
+
+                    $fieldsForm[]['form'] = $formFields;
 
                     $helper->fields_value['METHOD_ACTIVE_'.$method->getId()] = Tools::getValue('METHOD_ACTIVE_'.$method->getId(), Configuration::get('CCVONLINEPAYMENTS_METHOD_ACTIVE_'.$method->getId()));
                 }
