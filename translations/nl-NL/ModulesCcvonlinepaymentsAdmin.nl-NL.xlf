@@ -2,14 +2,14 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file original="admin4209oq2jbrjzxds6jon" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
     <body>
-      <trans-unit id="6bb2375a1f9734040bbf3238a9134e17">
-        <source>Choose the order statuses that should cancel/reserve an already started authorization. A common status is 'Cancelled'. Please note that a reversal can only take place for the parts of an order that have not yet been captured.</source>
-        <target>Geef hier de order status op die een al gemaakte ‘Klarna betaling Autorisatie’ zal Annuleren/Reversal, veel gebruikte status is ‘Canceled’. LET OP een Reversal kan alleen plaats vinden op orders die nog niet in de orderstatus zijn gezet die tot een capture hebben geleid.</target>
+      <trans-unit id="3eca16f667b490a452bc5b70d4656529">
+        <source>The refunded has been created at CCV Online Payments</source>
+        <target>De refund is aangemaakt bij CCV Online Payments</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="6beec57c846351a955dfff9112b9bd26">
-        <source>Choose the order statuses that should trigger a 'capture'. For orders that are paid with Klarna a capture needs to take please after delivery to the consumer. Common statuses are 'delivered' or 'shipped'.</source>
-        <target>Geeft hier de order statussen op waarbij er een ‘Capture’ zal plaats vinden voor de Klarna betaling. Bij verkopen die betaald zijn met Klarna dient de capture pas plaats te vinden na levering aan de consument. Veel gebruikte statussen zijn ‘Delevered’ en ‘Shipped’</target>
+      <trans-unit id="2652c454998a66635c0bf4c3b19a142e">
+        <source>The partial refund has been created, but we failed to create a refund at CCV Online Payments: </source>
+        <target>De gedeeltelijke teruggave is aangemaakt, maar kon niet worden aangemaakt bij CCV Online Payments: </target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3532bdd74b1792db9ec0488e4a041faf">
@@ -67,9 +67,19 @@
         <target>Nee</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="6beec57c846351a955dfff9112b9bd26">
+        <source>Choose the order statuses that should trigger a 'capture'. For orders that are paid with Klarna a capture needs to take please after delivery to the consumer. Common statuses are 'delivered' or 'shipped'.</source>
+        <target>Geeft hier de order statussen op waarbij er een ‘Capture’ zal plaats vinden voor de Klarna betaling. Bij verkopen die betaald zijn met Klarna dient de capture pas plaats te vinden na levering aan de consument. Veel gebruikte statussen zijn ‘Delevered’ en ‘Shipped’</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="0e9bb16ad46cd1dd7cbed19b7ebf5e9d">
         <source>Capture Order Status</source>
         <target>Capture Order Status</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6bb2375a1f9734040bbf3238a9134e17">
+        <source>Choose the order statuses that should cancel/reserve an already started authorization. A common status is 'Cancelled'. Please note that a reversal can only take place for the parts of an order that have not yet been captured.</source>
+        <target>Geef hier de order status op die een al gemaakte ‘Klarna betaling Autorisatie’ zal Annuleren/Reversal, veel gebruikte status is ‘Canceled’. LET OP een Reversal kan alleen plaats vinden op orders die nog niet in de orderstatus zijn gezet die tot een capture hebben geleid.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="d7efcea2a678627e090eb1e46359013e">

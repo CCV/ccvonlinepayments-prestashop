@@ -998,11 +998,13 @@ class CcvOnlinePayments extends PaymentModule
         try {
             $refundResponse = $this->getApi()->createRefund($refundRequest);
         }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
-            $session->getFlashBag()->add('error', $this->l("The partial refund has been created, but we failed to create a refund at CCV Online Payments: ").$apiException->getMessage());
+            $errorMessage = $this->trans("The partial refund has been created, but we failed to create a refund at CCV Online Payments: ", [],"Modules.Ccvonlinepayments.Admin");
+            $session->getFlashBag()->add('error', $errorMessage.$apiException->getMessage());
             return false;
         }
 
-        $session->getFlashBag()->add('success', $this->l("The refunded has been created at CCV Online Payments"));
+        $successMessage = $this->trans("The refunded has been created at CCV Online Payments", [],"Modules.Ccvonlinepayments.Admin");
+        $session->getFlashBag()->add('success', $successMessage);
         return true;
     }
 
