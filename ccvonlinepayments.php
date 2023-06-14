@@ -998,8 +998,9 @@ class CcvOnlinePayments extends PaymentModule
         try {
             $refundResponse = $this->getApi()->createRefund($refundRequest);
         }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
-            $errorMessage = $this->trans("The partial refund has been created, but we failed to create a refund at CCV Online Payments: ", [],"Modules.Ccvonlinepayments.Admin");
-            $session->getFlashBag()->add('error', $errorMessage.$apiException->getMessage());
+            $errorMessage = $this->trans("The partial refund has been created, but we failed to create a refund at CCV Online Payments: ", [],"Modules.Ccvonlinepayments.Admin").$apiException->getMessage();
+            $session->getFlashBag()->add('error', $errorMessage);
+            $this->addMessageToOrder($params['order'], $errorMessage);
             return false;
         }
 
@@ -1148,6 +1149,16 @@ class CcvOnlinePayments extends PaymentModule
             pSQL($order->reference)
         ));
 
+        $orderStatus = new OrderState((int)$newOrderStateId);
+        if(isset($orderStatus->template)) {
+            foreach($orderStatus->template as $template) {
+                if($template === "refund") {
+                    $this->refund($order);
+                    break;
+                }
+            }
+        }
+
         if($payment['transaction_type'] !== \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE) {
             return false;
         }
@@ -1158,7 +1169,9 @@ class CcvOnlinePayments extends PaymentModule
         try {
             if (in_array($newOrderStateId, $captureStates)) {
                 $this->capture($order, $payment['payment_reference']);
-            } elseif (in_array($newOrderStateId, $reversalStates)) {
+            }
+
+            if (in_array($newOrderStateId, $reversalStates)) {
                 $this->reversal($order, $payment['payment_reference']);
             }
         }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
@@ -1188,9 +1201,66 @@ class CcvOnlinePayments extends PaymentModule
     }
 
     private function reversal($order, $paymentReference) {
+        global $cookie;
+        if($cookie->id_employee > 0) {
+            $payment = Db::getInstance()->getRow(sprintf(
+                "SELECT payment_reference, method, transaction_type, capture_reference FROM "._DB_PREFIX_."ccvonlinepayments_payments WHERE `order_reference`='%s'",
+                pSQL($order->reference)
+            ));
+
+            if(array_key_exists('capture_reference', $payment) && $payment['capture_reference'] !== null) {
+                $errorMessage = $this->trans("This order has already been (partially) captured. The captured part of the order cannot be reversed. Please create a refund using the partial refund functionality.", [],"Modules.Ccvonlinepayments.Admin");
+
+                $session = $this->get('session');
+                $session->getFlashBag()->add('error', $errorMessage);
+                $this->addMessageToOrder($order, $errorMessage);
+            }
+        }
+
         $reversalRequest = new \CCVOnlinePayments\Lib\ReversalRequest();
         $reversalRequest->setReference($paymentReference);
         $this->getApi()->createReversal($reversalRequest);
+    }
+
+    private function refund($order) {
+        global $cookie;
+
+        if ($order->module !== 'ccvonlinepayments') {
+            return false;
+        }
+
+        if($cookie->id_employee > 0) {
+            $errorMessage = $this->trans("Changing the status to refunded will not create a refund at CCV Online Payments. Please use the partial refund functionality.", [],"Modules.Ccvonlinepayments.Admin");
+
+            $session = $this->get('session');
+            $session->getFlashBag()->add('error', $errorMessage);
+            $this->addMessageToOrder($order, $errorMessage);
+        }
+    }
+
+    private function addMessageToOrder($order, $message) {
+        global $cookie;
+
+        $customer_thread = new CustomerThread();
+        $customer_thread->id_contact = 0;
+        $customer_thread->id_customer = (int) $order->id_customer;
+        $customer_thread->id_shop = (int) $order->shop->id;
+        $customer_thread->id_order = (int) $order->id;
+        $customer_thread->id_lang = (int) $order->language->id;
+        $customer_thread->email = $order->customer->email;
+        $customer_thread->status = 'open';
+        $customer_thread->token = Tools::passwdGen(12);
+        $customer_thread->add();
+
+
+        $msg = new CustomerMessage();
+        $message = strip_tags($message, '<br>');
+        $msg->message = $message;
+        $msg->id_order = intval($order->id);
+        $msg->id_customer_thread = $customer_thread->id;
+        $msg->id_employee = $cookie->id_employee;
+        $msg->private = 1;
+        $msg->add();
     }
 
 

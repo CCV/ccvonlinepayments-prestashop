@@ -2,14 +2,14 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file original="admin4209oq2jbrjzxds6jon" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
     <body>
-      <trans-unit id="3eca16f667b490a452bc5b70d4656529">
-        <source>The refunded has been created at CCV Online Payments</source>
-        <target>De refund is aangemaakt bij CCV Online Payments</target>
+      <trans-unit id="9e798fcda6401fcbd4b85478b560b153">
+        <source>Changing the status to refunded will not create a refund at CCV Online Payments. Please use the partial refund functionality.</source>
+        <target>Het wijzigen van de status naar terugbetaald maakt geen refund aan bij CCV Online Payments. Gebruik hiervoor de gedeeltelijke teruggave functionaliteit.</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="2652c454998a66635c0bf4c3b19a142e">
-        <source>The partial refund has been created, but we failed to create a refund at CCV Online Payments: </source>
-        <target>De gedeeltelijke teruggave is aangemaakt, maar kon niet worden aangemaakt bij CCV Online Payments: </target>
+      <trans-unit id="1ca5caf7cc506d082f6d4a3e36e3fa55">
+        <source>This order has already been (partially) captured. The captured part of the order cannot be reversed. Please create a refund using the partial refund functionality.</source>
+        <target>De order is al (deels) gecaptured. Het captured gedeelte van de order kan niet worden reversed. U kunt hiervoor een gedeeltelijke teruggave aanmaken.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3532bdd74b1792db9ec0488e4a041faf">
@@ -85,6 +85,16 @@
       <trans-unit id="d7efcea2a678627e090eb1e46359013e">
         <source>Reversal Order Status</source>
         <target>Reversal Order Status</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="2652c454998a66635c0bf4c3b19a142e">
+        <source>The partial refund has been created, but we failed to create a refund at CCV Online Payments: </source>
+        <target>De gedeeltelijke teruggave is aangemaakt, maar kon niet worden aangemaakt bij CCV Online Payments: </target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3eca16f667b490a452bc5b70d4656529">
+        <source>The refunded has been created at CCV Online Payments</source>
+        <target>De refund is aangemaakt bij CCV Online Payments</target>
         <note>Line: </note>
       </trans-unit>
     </body>

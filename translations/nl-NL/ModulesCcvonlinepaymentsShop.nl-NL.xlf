@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file original="admin4209oq2jbrjzxds6jon" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
     <body>
-      <trans-unit id="36a7bf6f8470762dd2d8a2a1ab32b6a4">
-        <source>Your payment was unsuccesfull. Please try again</source>
-        <target>Your payment was unsuccesfull. Please try again</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="09e81d9430aa5e66ae26df8b1130af19">
         <source>Your payment was unsuccessful. Please try again</source>
         <target>Uw betaling is niet gelukt. Probeer het alstublieft opnieuw.</target>
@@ -100,6 +95,11 @@
       <trans-unit id="2c561672f804e764c57e7b9f391f34f0">
         <source>Klarna</source>
         <target>Klarna</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="36a7bf6f8470762dd2d8a2a1ab32b6a4">
+        <source>Your payment was unsuccesfull. Please try again</source>
+        <target>Your payment was unsuccesfull. Please try again</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="41981a88357bf8207e3ed755cf970c8e">
