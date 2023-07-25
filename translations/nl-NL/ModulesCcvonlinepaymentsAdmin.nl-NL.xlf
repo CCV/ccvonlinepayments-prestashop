@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="admin4209oq2jbrjzxds6jon" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
+    <body>
+      <trans-unit id="9e798fcda6401fcbd4b85478b560b153">
+        <source>Changing the status to refunded will not create a refund at CCV Online Payments. Please use the partial refund functionality.</source>
+        <target>Het wijzigen van de status naar terugbetaald maakt geen refund aan bij CCV Online Payments. Gebruik hiervoor de gedeeltelijke teruggave functionaliteit.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="1ca5caf7cc506d082f6d4a3e36e3fa55">
+        <source>This order has already been (partially) captured. The captured part of the order cannot be reversed. Please create a refund using the partial refund functionality.</source>
+        <target>De order is al (deels) gecaptured. Het captured gedeelte van de order kan niet worden reversed. U kunt hiervoor een gedeeltelijke teruggave aanmaken.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3532bdd74b1792db9ec0488e4a041faf">
+        <source>CCV Online Payments</source>
+        <target>CCV Online Payments</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="2fb367c75bafe0d79926fa57c19b3171">
+        <source>CCV Online Payments integration</source>
+        <target>CCV Online Payments integration</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a02758d758e8bec77a33d7f392eb3f8a">
+        <source>No currency has been set for this module.</source>
+        <target>Er is geen munteenheid ingesteld voor deze betaalmodule.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="018b53f1e7be0b17ebf5e6af64f9bfe4">
+        <source>Invalid Api Key</source>
+        <target>Ongeldige API Sleutel</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="c888438d14855d7d96a2724ee9c306bd">
+        <source>Settings updated</source>
+        <target>Instellingen geüpdatet</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="f4f70727dc34561dfde1a3c529b6205c">
+        <source>Settings</source>
+        <target>Instellingen</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="2e5e61c17add3609c6786a4c9ce1a279">
+        <source>Api Key</source>
+        <target>API Sleutel</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="c9cc8cce247e49bae79f15173ce97354">
+        <source>Save</source>
+        <target>Opslaan</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4d3d769b812b6faa6b76e1a8abaece2d">
+        <source>Active</source>
+        <target>Actief</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="93cba07454f06a4a960172bbd6e2a435">
+        <source>Yes</source>
+        <target>Ja</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="bafd7322c6e97d25b6299b5d6fe8920b">
+        <source>No</source>
+        <target>Nee</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6beec57c846351a955dfff9112b9bd26">
+        <source>Choose the order statuses that should trigger a 'capture'. For orders that are paid with Klarna a capture needs to take please after delivery to the consumer. Common statuses are 'delivered' or 'shipped'.</source>
+        <target>Geeft hier de order statussen op waarbij er een ‘Capture’ zal plaats vinden voor de Klarna betaling. Bij verkopen die betaald zijn met Klarna dient de capture pas plaats te vinden na levering aan de consument. Veel gebruikte statussen zijn ‘Delevered’ en ‘Shipped’</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="0e9bb16ad46cd1dd7cbed19b7ebf5e9d">
+        <source>Capture Order Status</source>
+        <target>Capture Order Status</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6bb2375a1f9734040bbf3238a9134e17">
+        <source>Choose the order statuses that should cancel/reserve an already started authorization. A common status is 'Cancelled'. Please note that a reversal can only take place for the parts of an order that have not yet been captured.</source>
+        <target>Geef hier de order status op die een al gemaakte ‘Klarna betaling Autorisatie’ zal Annuleren/Reversal, veel gebruikte status is ‘Canceled’. LET OP een Reversal kan alleen plaats vinden op orders die nog niet in de orderstatus zijn gezet die tot een capture hebben geleid.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d7efcea2a678627e090eb1e46359013e">
+        <source>Reversal Order Status</source>
+        <target>Reversal Order Status</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="2652c454998a66635c0bf4c3b19a142e">
+        <source>The partial refund has been created, but we failed to create a refund at CCV Online Payments: </source>
+        <target>De gedeeltelijke teruggave is aangemaakt, maar kon niet worden aangemaakt bij CCV Online Payments: </target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3eca16f667b490a452bc5b70d4656529">
+        <source>The refunded has been created at CCV Online Payments</source>
+        <target>De refund is aangemaakt bij CCV Online Payments</target>
+        <note>Line: </note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

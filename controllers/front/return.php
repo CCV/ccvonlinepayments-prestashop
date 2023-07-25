@@ -49,7 +49,7 @@ class CcvOnlinePaymentsReturnModuleFrontController extends ModuleFrontController
                 $this->setTemplate('module:ccvonlinepayments/views/templates/front/ccvonlinepayments_pending.tpl');
                 break;
             case \CCVOnlinePayments\Lib\PaymentStatus::STATUS_FAILED:
-                $this->errors[] = $this->trans("Your payment was unsuccesfull. Please try again",[], "Modules.Ccvonlinepayments.Shop");
+                $this->errors[] = $this->trans("Your payment was unsuccessful. Please try again",[], "Modules.Ccvonlinepayments.Shop");
                 $this->redirectWithNotifications($this->context->link->getPagelink('order', true, null, array('step' => 3)));
                 break;
         }

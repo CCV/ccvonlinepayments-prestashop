@@ -3,3 +3,4 @@ build
 images
 logo.png
 .idea
+config*.xml
