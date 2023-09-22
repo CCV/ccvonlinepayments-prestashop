@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
-  <file original="admin4209oq2jbrjzxds6jon" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
+  <file original="admin639tc91rn" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
     <body>
       <trans-unit id="09e81d9430aa5e66ae26df8b1130af19">
         <source>Your payment was unsuccessful. Please try again</source>
@@ -20,6 +20,11 @@
       <trans-unit id="ae3f3ffc5b8b459be6324348be16b94b">
         <source>There was an unexpected error processing your payment</source>
         <target>Er heeft zich een onverwachte fout voorgedaan tijdens het verwerken van uw betaling</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="697abb9a95cfe2c76cc3b71312ea176a">
+        <source>Apple Pay</source>
+        <target>Apple Pay</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3726d2bc671a53445f9f57095bf9d76b">
@@ -95,11 +100,6 @@
       <trans-unit id="2c561672f804e764c57e7b9f391f34f0">
         <source>Klarna</source>
         <target>Klarna</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="36a7bf6f8470762dd2d8a2a1ab32b6a4">
-        <source>Your payment was unsuccesfull. Please try again</source>
-        <target>Your payment was unsuccesfull. Please try again</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="41981a88357bf8207e3ed755cf970c8e">
