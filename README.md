@@ -24,7 +24,7 @@ Official CCV Payment Services plugin for PrestaShop.
 
 * The live API key is released after successful boarding by CCV Online Payments.
 
-Manuals are available on the [CCV web site](https://www.ccv.eu/nl/service/support/handleidingen).
+Manuals are available on the [CCV web site]([https://www.ccv.eu/nl/service/support/handleidingen](https://www.ccv.eu/nl/wp-content/uploads/sites/7/2021/02/Prestashop-Webshop-koppelen-aan-CCV-Online-Payments.pdf)).
 
 # 4. Support
 
