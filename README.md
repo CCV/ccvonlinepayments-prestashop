@@ -19,7 +19,7 @@ Official CCV Payment Services plugin for PrestaShop.
 6. Activate plugin
 7. Get your LIVE API key from your MyCCV account*
 8. Enter the API key
-9. activate the desired payment methods
+9. Activate the desired payment methods
 10. Click on 'Save'
 
 * The live API key is released after successful boarding by CCV Online Payments.
