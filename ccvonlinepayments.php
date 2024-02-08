@@ -28,7 +28,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.3';
+        $this->version = '1.3.4';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '8.1.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -91,6 +91,26 @@ class CcvOnlinePayments extends PaymentModule
         return true;
     }
 
+    private function getFilteredAndSortedMethods($invoiceCountry = null) {
+        $api = $this->getApi();
+        $methods = $api->sortMethods($api->getMethods(),$invoiceCountry);
+
+        $filterMethods = [
+            "terminal"      => true,
+            "landingpage"   => true,
+            "gift"          => true,
+            "softpos"       => true,
+            "payconiq"      => true,
+            "alipay"        => true,
+            "sdd"           => true
+        ];
+        $methods = array_filter($methods, function($method) use ($filterMethods) {
+            return !isset($filterMethods[$method->getId()]);
+        });
+
+        return $methods;
+    }
+
     public function getMethodNameById($methodId) {
         $methodName = $methodId;
         switch($methodId) {
@@ -132,8 +152,7 @@ class CcvOnlinePayments extends PaymentModule
         $invoiceAddress = new Address($context->cart->id_address_invoice);
         $invoiceCountryCode = (new Country($invoiceAddress->id_country))->iso_code;
 
-        $methods = $ccvOnlinePaymentsApi->getMethods();
-        $methods = $ccvOnlinePaymentsApi->sortMethods($methods, $invoiceCountryCode);
+        $methods = $this->getFilteredAndSortedMethods($invoiceCountryCode);
 
         $paymentOptions = [];
         foreach($methods as $method) {
@@ -278,7 +297,7 @@ class CcvOnlinePayments extends PaymentModule
                     "Modules.Ccvonlinepayments.Admin"
                 );
             }else{
-                foreach($api->sortMethods($api->getMethods()) as $method) {
+                foreach($this->getFilteredAndSortedMethods() as $method) {
                     $imageCode = "";
                     if($this->hasMethodImage($method->getId())) {
                         $imageCode = "<img src='".htmlspecialchars($this->getMethodImagePath($method->getId()))."' style='max-height:80%'> ";
@@ -1186,7 +1205,7 @@ class CcvOnlinePayments extends PaymentModule
     private function capture($order, $paymentReference) {
         $captureRequest = new \CCVOnlinePayments\Lib\CaptureRequest();
         $captureRequest->setReference($paymentReference);
-        $captureRequest->setAmount($order->total);
+        $captureRequest->setAmount($order->total_paid);
         $captureResponse = $this->getApi()->createCapture($captureRequest);
 
         Db::getInstance()->update(
