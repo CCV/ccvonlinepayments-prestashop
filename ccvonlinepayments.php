@@ -28,7 +28,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.4';
+        $this->version = '1.4.0';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '8.1.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -186,7 +186,7 @@ class CcvOnlinePayments extends PaymentModule
                             "value" => $method->getIssuerKey(),
                         ),
                     ));
-                    if ($method->getIssuers() !== null) {
+                    if ($method->getId() !== "ideal" && $method->getIssuers() !== null) {
                         Context::getContext()->smarty->assign(array(
                             "method"    => $method->getId(),
                             "issuerKey" => $method->getIssuerKey(),
