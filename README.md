@@ -1,6 +1,6 @@
 # 1. About this plugin
 
-Official CCV Payment Services plugin for PrestaShop.
+Official CCV Online Payments plugin for PrestaShop.
 
 # 2. Technical information
 
