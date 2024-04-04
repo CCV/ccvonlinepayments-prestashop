@@ -11,7 +11,7 @@ Official CCV Payment Services plugin for PrestaShop.
 
 # 3. Installing the plugin into your web shop
 
-1. Download the lates version of the plugin (.zip)
+1. Download the lates version of the plugin (.zip) [!Here](https://github.com/CCV/ccvonlinepayments-prestashop/releases/latest)
 2. Log in to Prestashop
 3. Click on 'Modules & Module Manager'
 4. Click on 'Upload a module'
