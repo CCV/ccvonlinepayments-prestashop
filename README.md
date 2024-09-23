@@ -1,35 +1,61 @@
-# 1. About this plugin
 
-Official CCV Online Payments plugin for PrestaShop.
+# About this plugin
 
-# 2. Technical information
+PrestaShop is an open-source e-commerce platform that provides an intuitive and flexible solution for online merchants. It is feature-rich and customizable, with a wide range of modules to enhance its functionality. PrestaShop is particularly suitable for small to medium-sized businesses seeking a cost-effective platform without sacrificing flexibility or control.
 
-## 2.1. Plugin dependencies
+CCV has developed a dedicated plugin that seamlessly integrates PrestaShop with CCV's Online Payments solution. This plugin allows you to easily connect your e-commerce store to CCV's secure payment gateway, enabling smooth and reliable transactions for customers.
 
-- PrestaShop 1.7.6.0 or higher
-- PHP 7.2 or higher
+# Payment methods
+CCV makes the following payment methods available in this plugin: 
+- iDeal
+- Bancontact
+- Apple Pay
+- Google Pay
+- Maestro
+- Mastercard
+- Visa
+- Amex
+- PayPal
+- Klarna
+- Bank Transfer	
 
-# 3. Installing the plugin into your web shop
+# Requirements
+To support this plugin, the following requirements must be met:
+-	PrestaShop 1.7.6.0 or higher
+-	PHP 7.2 or higher
+-	MyCCV account & API key*
 
-1. Download the latest version of the plugin (ccvonlinepayments-prestashop-x.x.x.zip) [Here](https://github.com/CCV/ccvonlinepayments-prestashop/releases/latest)
-3. Log in to Prestashop
-4. Click on 'Modules & Module Manager'
-5. Click on 'Upload a module'
-6. Upload our plugin that you downloaded
-7. Click on 'Configure'
-8. Activate plugin
-9. Get your LIVE API key from your MyCCV account*
-10. Enter the API key
-11. Activate the desired payment methods
-12. Click on 'Save'
+*The live API key is released after successful boarding by CCV Online Payments. To register, contact us at https://www.ccv.eu/en/solutions/payment-services/ccv-online-payments/partners/online-payments-form/.
 
-* The live API key is released after successful boarding by CCV Online Payments.
+# Download
+Download the latest version of the plugin (ccvonlinepayments-prestashop-x.x.x.zip) [here](https://github.com/CCV/ccvonlinepayments-prestashop/releases/latest)
 
-Manuals are available on the [CCV web site](https://www.ccv.eu/nl/service/support/handleidingen/).
+# Install
+In PrestaShop Admin:
+1.	Click on 'Modules & Module Manager'
+2.	Click on 'Upload a module'
+3.	Upload the CCV plugin
 
-# 4. Support
+# Upgrade
+To upgrade the PrestaShop plugin, simply re-do the chapters Download and Install.
 
-Please create a GitHub issue for feature requests or bug reports. If you have a general question or installation difficulties, you can contact us directly ecommerce@ccv.eu
-# 5. License
+# Configure
+In PrestaShop Admin:
+1.	Click on 'Modules & Module Manager' and find the CCV plugin
+2.	Click on 'Configure'
+3.	Activate plugin
+4.	Get your LIVE API key from your MyCCV account
+5.	Enter the API key
+6.	Activate the desired payment methods
+7.	Click on 'Save'
+
+# Release notes
+At CCV, we are committed to transparency and keeping our users informed about the continuous improvements to our Online Payments solution. To ensure easy access to the latest updates, we maintain a dedicated release notes website. This resource provides detailed information about each new version, including feature additions, enhancements, and fixes. By visiting the website, you can stay up to date with the latest developments and make the most of the new tools and capabilities we introduce.
+
+# Contact us
+Please create a GitHub issue for feature requests or bug reports. If you have a general question or installation difficulties, you can contact us directly ecommerce@ccv.eu.
+![image](https://github.com/user-attachments/assets/2b2491ef-3688-4513-93cc-aa63f53a6642)
+
+# License
 
 [![MIT license](https://img.shields.io/github/license/CCV/ccvonlinepayments-prestashop)](https://github.com/CCV/ccvonlinepayments-prestashop/blob/master/LICENSE.txt)
