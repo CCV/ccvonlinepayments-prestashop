@@ -1,3 +1,4 @@
+<img src="https://github.com/user-attachments/assets/5d009aa7-b0d7-4fda-a158-64078c1fb355" alt="PrestaShop" width="200"/>
 
 # About this plugin
 
