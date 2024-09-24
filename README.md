@@ -55,7 +55,6 @@ At CCV, we are committed to transparency and keeping our users informed about th
 
 # Contact us
 Please create a GitHub issue for feature requests or bug reports. If you have a general question or installation difficulties, you can contact us directly ecommerce@ccv.eu.
-![image](https://github.com/user-attachments/assets/2b2491ef-3688-4513-93cc-aa63f53a6642)
 
 # License
 
