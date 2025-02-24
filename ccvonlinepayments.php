@@ -14,7 +14,7 @@ require_once __DIR__ . "/src/Logger.php";
 class CcvOnlinePayments extends PaymentModule
 {
 
-    const CCVONLINEPAYMENTS_MIN_PHP_VERSION = "7.2.0";
+    const CCVONLINEPAYMENTS_MIN_PHP_VERSION = "8.1.0";
 
     protected $_html = '';
     protected $_postErrors = array();
@@ -28,8 +28,8 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.4.1';
-        $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '8.1.999');
+        $this->version = '1.5.0';
+        $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '8.2.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
         $this->is_eu_compatible = 1;
@@ -55,7 +55,7 @@ class CcvOnlinePayments extends PaymentModule
         }
 
         if(version_compare(PHP_VERSION, self::CCVONLINEPAYMENTS_MIN_PHP_VERSION, '<')) {
-            die('CCV OnlinePayments requires php 7.2 or greater.');
+            die('CCV OnlinePayments requires php '.self::CCVONLINEPAYMENTS_MIN_PHP_VERSION.' or greater.');
         }
 
         if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('actionOrderSlipAdd') || !$this->registerHook('actionOrderHistoryAddAfter')) {
