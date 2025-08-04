@@ -1,0 +1,13 @@
+parameters:
+	level: 8
+	phpVersion: 80100
+	paths:
+		- controllers
+		- src
+		- ccvonlinepayments.php
+		- upgrade
+	excludePaths:
+		analyse:
+			- src/LoggerV3.php
+	scanDirectories:
+		- vendor/stancer/php-stubs-prestashop/stubs/

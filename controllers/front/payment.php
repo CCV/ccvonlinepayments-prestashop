@@ -6,11 +6,15 @@ if (!defined('_PS_VERSION_')) {
 class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontController
 {
 
-    public function initContent()
+    public function initContent() : void
     {
         $cart = $this->context->cart;
-        if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active) {
-            Tools::redirect(Context::getContext()->link->getPageLink('index', true));
+
+        /** @var Link $link */
+        $link = Context::getContext()?->link;
+
+        if ($cart === null || $cart->id_customer === 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active) {
+            Tools::redirect($link->getPageLink('index', true));
             return;
         }
 
@@ -33,7 +37,7 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
             Cart::BOTH
         );
         if(!$amount) {
-            Tools::redirect(Context::getContext()->link->getPageLink('index', true));
+            Tools::redirect($link->getPageLink('index', true));
             return;
         }
 
@@ -41,36 +45,49 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
             foreach($errors as $error) {
                 $this->errors[] = $error;
             }
+
+            /** @phpstan-ignore-next-line arguments.count */
             $this->redirectWithNotifications($this->context->link->getPagelink('order', true, null, array('step' => 3)));
             return;
         }
 
         $orderReference = Order::generateReference();
 
-        $ccvOnlinePaymentsApi = $this->module->getApi();
+        /** @var CcvOnlinePayments $module */
+        $module = $this->module;
+        $ccvOnlinePaymentsApi = $module->getApi();
 
         $methodId = Tools::getValue('method');
         $method = $ccvOnlinePaymentsApi->getMethodById($methodId);
+        if($method === null) {
+            throw new Exception("Method not found");
+        }
+
         if($method->isTransactionTypeSaleSupported()) {
-            $transactionType = \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_SALE;
+            $transactionType = \CCVOnlinePayments\Lib\Enum\TransactionType::SALE;
         }elseif($method->isTransactionTypeAuthoriseSupported()){
-            $transactionType = \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE;
+            $transactionType = \CCVOnlinePayments\Lib\Enum\TransactionType::AUTHORIZE;
         }else{
             throw new \Exception("No transaction types supported");
+        }
+
+        $currencyCode = $this->context->currency?->iso_code;
+        if($currencyCode === null) {
+            throw new Exception("No currency found");
         }
 
         $paymentRequest = new \CCVOnlinePayments\Lib\PaymentRequest();
         $paymentRequest->setTransactionType($transactionType);
         $paymentRequest->setAmount($amount);
-        $paymentRequest->setCurrency(Tools::strtoupper($this->context->currency->iso_code));
+        $paymentRequest->setCurrency(strtoupper($currencyCode));
         $paymentRequest->setMerchantOrderReference($orderReference);
-        $paymentRequest->setReturnUrl($this->context->link->getModuleLink(
+        $paymentRequest->setReturnUrl($link->getModuleLink(
             "ccvonlinepayments",
             "return",
             array("cartId" => $cart->id, "ref" => $orderReference),
             true
         ));
-        $paymentRequest->setWebhookUrl($this->context->link->getModuleLink(
+        $paymentRequest->setWebhookUrl($link->getModuleLink(
             "ccvonlinepayments",
             "webhook",
             array("cartId" => $cart->id, "ref" => $orderReference),
@@ -78,10 +95,12 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         ));
 
         $language = "eng";
-        switch(Language::getIsoById( $this->context->cookie->id_lang)) {
-            case "nl":  $language = "nld"; break;
-            case "de":  $language = "deu"; break;
-            case "fr":  $language = "fra"; break;
+        if($this->context->cookie !== null) {
+            switch(Language::getIsoById( $this->context->cookie->id_lang)) {
+                case "nl":  $language = "nld"; break;
+                case "de":  $language = "deu"; break;
+                case "fr":  $language = "fra"; break;
+            }
         }
         $paymentRequest->setLanguage($language);
 
@@ -96,8 +115,6 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         }elseif($issuerKey === "brand") {
             $paymentRequest->setBrand($issuer);
         }
-
-        $paymentRequest->setScaReady(false);
 
         $invoiceAddress = new Address($cart->id_address_invoice);
         $paymentRequest->setBillingAddress($invoiceAddress->address1);
@@ -120,9 +137,20 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
 
 
         $customer = new Customer($cart->id_customer);
-        $paymentRequest->setAccountInfoAccountIdentifier($customer->id);
-        $paymentRequest->setAccountInfoAccountCreationDate(DateTime::createFromFormat('Y-m-d H:i:s', $customer->date_add));
-        $paymentRequest->setAccountInfoAccountChangeDate(DateTime::createFromFormat('Y-m-d H:i:s', $customer->date_upd));
+        $paymentRequest->setAccountInfoAccountIdentifier(strval($customer->id));
+
+        $creationDate = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $customer->date_add??"");
+        if($creationDate === false) {
+            $creationDate = null;
+        }
+        $paymentRequest->setAccountInfoAccountCreationDate($creationDate);
+
+        $changeDate = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $customer->date_upd);
+        if($changeDate === false) {
+            $changeDate = null;
+        }
+
+        $paymentRequest->setAccountInfoAccountChangeDate($changeDate);
         $paymentRequest->setAccountInfoEmail($customer->email);
         $paymentRequest->setAccountInfoHomePhoneNumber($invoiceAddress->phone);
         $paymentRequest->setAccountInfoMobilePhoneNumber($invoiceAddress->phone_mobile);
@@ -134,14 +162,16 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
         $paymentRequest->setBrowserIpAddress(Tools::getRemoteAddr());
 
         if($method->isOrderLinesRequired()) {
-            $paymentRequest->setOrderLines($this->module->getOrderLinesByCart($cart));
+            $paymentRequest->setOrderLines($module->getOrderLinesByCart($cart));
         }
 
         try {
             $paymentResponse = $ccvOnlinePaymentsApi->createPayment($paymentRequest);
         }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
             $this->errors[] = $this->trans("There was an unexpected error processing your payment", [], "Modules.Ccvonlinepayments.Shop");
-            $this->redirectWithNotifications($this->context->link->getPagelink('order', true, null, array('step' => 3)));
+
+            /** @phpstan-ignore-next-line arguments.count */
+            $this->redirectWithNotifications($link->getPagelink('order', true, null, array('step' => 3)));
             return;
         }
 
@@ -149,14 +179,19 @@ class CcvOnlinePaymentsPaymentModuleFrontController extends ModuleFrontControlle
             'ccvonlinepayments_payments',
             array(
                 'order_reference'   => pSQL($orderReference),
-                'payment_reference' => pSQL($paymentResponse->getReference()),
+                'payment_reference' => pSQL($paymentResponse->getReference()??""),
                 'cart_id'           => (int) $cart->id,
                 'status'            => 'pending',
                 'method'            => $method->getId(),
-                'transaction_type'  => $transactionType
+                'transaction_type'  => $transactionType->value
             )
         );
 
-        Tools::redirect($paymentResponse->getPayUrl());
+        $payUrl = $paymentResponse->getPayUrl();
+        if($payUrl === null) {
+            throw new Exception("There was an unexpected error processing the payment");
+        }
+
+        Tools::redirect($payUrl);
     }
 }

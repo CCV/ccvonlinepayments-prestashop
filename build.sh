@@ -3,6 +3,9 @@
 composer install
 bash copyImages.sh
 
+rm -Rf vendor
+composer install --no-dev
+
 PACKAGE_VERSION=$(cat composer.json \
   | grep version \
   | head -1 \

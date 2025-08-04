@@ -5,7 +5,7 @@ if (!defined('_PS_VERSION_')) {
 
 class CcvOnlinePaymentsStatusPollModuleFrontController extends ModuleFrontController
 {
-    public function initContent()
+    public function initContent() : void
     {
         $ref    = Tools::getValue('ref');
         $cartId = Tools::getValue("cartId");

@@ -5,9 +5,12 @@ if (!defined('_PS_VERSION_')) {
 
 class CcvOnlinePaymentsReturnModuleFrontController extends ModuleFrontController
 {
-    public function initContent()
+    public function initContent() : void
     {
         parent::initContent();
+
+        /** @var Link $link */
+        $link = Context::getContext()?->link;
 
         $ref    = Tools::getValue('ref');
         $cartId = Tools::getValue("cartId");
@@ -18,39 +21,47 @@ class CcvOnlinePaymentsReturnModuleFrontController extends ModuleFrontController
             pSQL($cartId)
         ), false);
 
-        if($payment === false) {
+        if(!is_array($payment)) {
+            $this->errors[] = $this->trans("Your payment was unsuccessful. Please try again",[], "Modules.Ccvonlinepayments.Shop");
+            /** @phpstan-ignore-next-line arguments.count */
+            $this->redirectWithNotifications($link->getPagelink('order', true, null, array('step' => 3)));
             return;
         }
 
         switch($payment['status']) {
-            case \CCVOnlinePayments\Lib\PaymentStatus::STATUS_SUCCESS:
+            case \CCVOnlinePayments\Lib\Enum\PaymentStatus::SUCCESS->value:
                 $cart = new Cart($cartId);
                 Tools::redirect(
-                    $this->context->link->getPageLink(
+                    $link->getPageLink(
                         'order-confirmation',
                         true,
                         null,
                         array(
                             'id_cart'   => (int) $cart->id,
                             'id_module' => (int) $this->module->id,
-                            'id_order'  => (int) Order::getIdByCartId($cart->id),
+                            'id_order'  => (int) Order::getIdByCartId($cart->id??-1),
                             'key'       => $cart->secure_key,
                         )
                     )
                 );
                 break;
-            case \CCVOnlinePayments\Lib\PaymentStatus::STATUS_PENDING:
-                $this->context->smarty->assign('pollEndpoint', $this->context->link->getModuleLink(
-                    $this->module->name,
+            case \CCVOnlinePayments\Lib\Enum\PaymentStatus::PENDING->value:
+                /** @var Smarty $smarty */
+                $smarty = $this->context->smarty;
+
+                $smarty->assign('pollEndpoint', $link->getModuleLink(
+                    strval($this->module->name),
                     'statuspoll',
                     array("ref" => $ref, "cartId" => $cartId)
                 ));
 
                 $this->setTemplate('module:ccvonlinepayments/views/templates/front/ccvonlinepayments_pending.tpl');
                 break;
-            case \CCVOnlinePayments\Lib\PaymentStatus::STATUS_FAILED:
+            case \CCVOnlinePayments\Lib\Enum\PaymentStatus::FAILED->value:
                 $this->errors[] = $this->trans("Your payment was unsuccessful. Please try again",[], "Modules.Ccvonlinepayments.Shop");
-                $this->redirectWithNotifications($this->context->link->getPagelink('order', true, null, array('step' => 3)));
+
+                /** @phpstan-ignore-next-line arguments.count */
+                $this->redirectWithNotifications($link->getPagelink('order', true, null, array('step' => 3)));
                 break;
         }
     }

@@ -9,30 +9,21 @@ if (!defined('_PS_VERSION_')) {
 
 require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/src/Cache.php";
-require_once __DIR__ . "/src/Logger.php";
 
 class CcvOnlinePayments extends PaymentModule
 {
 
     const CCVONLINEPAYMENTS_MIN_PHP_VERSION = "8.1.0";
 
-    protected $_html = '';
-    protected $_postErrors = array();
-
-    public $details;
-    public $owner;
-    public $address;
-    public $extra_mail_vars;
-
-    public function __construct()
+    public function __construct(
+    )
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.5.0';
-        $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '8.2.999');
+        $this->version = '1.6.0';
+        $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '9.0.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
-        $this->is_eu_compatible = 1;
 
         $this->currencies       = true;
         $this->currencies_mode  = 'checkbox';
@@ -43,12 +34,15 @@ class CcvOnlinePayments extends PaymentModule
         $this->displayName = $this->trans('CCV Online Payments', [],"Modules.Ccvonlinepayments.Admin");
         $this->description = $this->trans('CCV Online Payments integration', [],"Modules.Ccvonlinepayments.Admin");
 
-        if (!count(Currency::checkPaymentCurrencies($this->id))) {
-            $this->warning = $this->trans('No currency has been set for this module.', [],"Modules.Ccvonlinepayments.Admin");
+        if ($this->id !== null) {
+            $currencies = Currency::checkPaymentCurrencies($this->id);
+            if(!is_array($currencies) || count($currencies)===0) {
+                $this->warning = $this->trans('No currency has been set for this module.', [], "Modules.Ccvonlinepayments.Admin");
+            }
         }
     }
 
-    public function install()
+    public function install() : bool
     {
         if(!extension_loaded('curl')) {
             die('CCV OnlinePayments requires the curl php extension.');
@@ -91,7 +85,10 @@ class CcvOnlinePayments extends PaymentModule
         return true;
     }
 
-    private function getFilteredAndSortedMethods($invoiceCountry = null) {
+    /**
+     * @return array<\CCVOnlinePayments\Lib\Method>
+     */
+    private function getFilteredAndSortedMethods(?string $invoiceCountry = null) : array {
         $api = $this->getApi();
         $methods = $api->sortMethods($api->getMethods(),$invoiceCountry);
 
@@ -104,14 +101,12 @@ class CcvOnlinePayments extends PaymentModule
             "alipay"        => true,
             "sdd"           => true
         ];
-        $methods = array_filter($methods, function($method) use ($filterMethods) {
+        return array_filter($methods, function($method) use ($filterMethods) {
             return !isset($filterMethods[$method->getId()]);
         });
-
-        return $methods;
     }
 
-    public function getMethodNameById($methodId) {
+    public function getMethodNameById(string $methodId) : string {
         $methodName = $methodId;
         switch($methodId) {
             case "applepay":        $methodName = $this->trans("Apple Pay",                     [], "Modules.Ccvonlinepayments.Shop"); break;
@@ -136,41 +131,49 @@ class CcvOnlinePayments extends PaymentModule
         return $methodName;
     }
 
-    public function hookPaymentOptions($params)
+    /**
+     * @param array<mixed> $params
+     * @return array<mixed>
+     */
+    public function hookPaymentOptions(array $params) : array
     {
         if (!$this->active) {
-            return;
+            return [];
         }
 
         if (!$this->checkCurrency($params['cart'])) {
-            return;
+            return [];
         }
 
+        /** @var Context $context */
         $context = Context::getContext();
 
-        $ccvOnlinePaymentsApi = $this->getApi();
+        /** @var Link $link */
+        $link = $context->link;
 
-        $invoiceAddress = new Address($context->cart->id_address_invoice);
+        $this->getApi();
+
+        $invoiceAddress = new Address($context->cart?->id_address_invoice);
         $invoiceCountryCode = (new Country($invoiceAddress->id_country))->iso_code;
 
         $methods = $this->getFilteredAndSortedMethods($invoiceCountryCode);
 
         $paymentOptions = [];
         foreach($methods as $method) {
-            if($method->isCurrencySupported($context->currency->iso_code)) {
+            if($context->currency !== null && $method->isCurrencySupported($context->currency->iso_code)) {
                 if(Configuration::get('CCVONLINEPAYMENTS_METHOD_ACTIVE_'.$method->getId())) {
                     $methodName = $this->getMethodNameById($method->getId());
 
                     $option = new PaymentOption();
                     $option->setCallToActionText($methodName);
-                    $option->setModuleName($this->name);
+                    $option->setModuleName(strval($this->name??""));
 
                     if($this->hasMethodImage($method->getId())) {
                         $option->setLogo($this->getMethodImagePath($method->getId()));
                     }
 
-                    $option->setAction(Context::getContext()->link->getModuleLink(
-                        $this->name,
+                    $option->setAction($link->getModuleLink(
+                        strval($this->name??""),
                         "payment",
                         array("method" => $method->getId(), "rnd" => time()),
                         true
@@ -188,7 +191,7 @@ class CcvOnlinePayments extends PaymentModule
                         ),
                     ));
                     if ($method->getId() !== "ideal" && $method->getIssuers() !== null) {
-                        Context::getContext()->smarty->assign(array(
+                        $context->smarty?->assign(array(
                             "method"    => $method->getId(),
                             "issuerKey" => $method->getIssuerKey(),
                             "issuers"   => $method->getIssuers(),
@@ -205,7 +208,7 @@ class CcvOnlinePayments extends PaymentModule
         return $paymentOptions;
     }
 
-    public function checkCurrency($cart)
+    public function checkCurrency(Cart $cart) : bool
     {
         $currency_order = new Currency($cart->id_currency);
         $currencies_module = $this->getCurrency($cart->id_currency);
@@ -220,16 +223,18 @@ class CcvOnlinePayments extends PaymentModule
         return false;
     }
 
-    public function getContent()
+    public function getContent() : string
     {
         $output = null;
-        $this->context->controller->addJqueryPlugin('select2');
+
+        /** @var AdminController $adminController */
+        $adminController = $this->context->controller;
+        $adminController->addJqueryPlugin('select2');
 
         if (Tools::isSubmit('submit'.$this->name)) {
             $apiKey = strval(Tools::getValue('API_KEY'));
 
             if (
-                !$apiKey ||
                 empty($apiKey) ||
                 !Validate::isString($apiKey)
             ) {
@@ -255,10 +260,13 @@ class CcvOnlinePayments extends PaymentModule
                 $this->displayForm();
     }
 
-    public function displayForm()
+    public function displayForm() : string
     {
         $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
         $orderStates = $this->getOrderStates();
+
+        /** @var AdminController $adminController */
+        $adminController = $this->context->controller;
 
         $helper = new HelperForm();
 
@@ -285,15 +293,15 @@ class CcvOnlinePayments extends PaymentModule
         $apiKey = Tools::getValue('API_KEY', Configuration::get('CCVONLINEPAYMENTS_API_KEY'));
         $helper->fields_value['API_KEY'] = $apiKey;
 
-        $helper->fields_value['ORDER_STATUS_CAPTURE[]'] = explode(",",Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE'));
-        $helper->fields_value['ORDER_STATUS_REVERSAL[]'] = explode(",",Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL'));
+        $helper->fields_value['ORDER_STATUS_CAPTURE[]'] = explode(",", strval(Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE')));
+        $helper->fields_value['ORDER_STATUS_REVERSAL[]'] = explode(",",strval(Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL')));
 
         if(trim($apiKey) !== "") {
             $api = $this->getApi($apiKey);
 
             if(!$api->isKeyValid()) {
-                $this->context->controller->warnings[] = sprintf(
-                    $this->trans('Invalid Api Key', [], "Modules.Ccvonlinepayments.Admin"),
+                $adminController->warnings[] = $this->trans(
+                    'Invalid Api Key',
                     [],
                     "Modules.Ccvonlinepayments.Admin"
                 );
@@ -392,555 +400,33 @@ class CcvOnlinePayments extends PaymentModule
         return $helper->generateForm($fieldsForm);
     }
 
-    public function isUsingNewTranslationSystem()
+    public function isUsingNewTranslationSystem() : bool
     {
         return true;
     }
 
-    /**
-     * Validate an order in database
-     * Function called from a payment module.
-     *
-     * @param int $id_cart
-     * @param int $id_order_state
-     * @param float $amount_paid Amount really paid by customer (in the default currency)
-     * @param string $payment_method Payment method (eg. 'Credit card')
-     * @param null $message Message to attach to order
-     * @param array $extra_vars
-     * @param null $currency_special
-     * @param bool $dont_touch_amount
-     * @param bool $secure_key
-     * @param Shop $shop
-     *
-     * @return bool
-     *
-     * @throws PrestaShopException
-     */
-    public function validateCcvOnlinePaymentsOrder(
-        $id_cart,
-        $id_order_state,
-        $amount_paid,
-        $reference,
-        $payment_method = 'Unknown',
-        $message = null,
-        $extra_vars = array(),
-        $currency_special = null,
-        $dont_touch_amount = false,
-        $secure_key = false,
-        Shop $shop = null
-    ) {
-        if (self::DEBUG_MODE) {
-            PrestaShopLogger::addLog('PaymentModule::validateOrder - Function called', 1, null, 'Cart', (int) $id_cart, true);
+    public function getApi(?string $apiKey = null) : CcvOnlinePaymentsApi {
+        if($apiKey === null) {
+            $apiKey = Configuration::get('CCVONLINEPAYMENTS_API_KEY');
+            if($apiKey === false) {
+                $apiKey = "";
+            }
         }
 
-        if (!isset($this->context)) {
-            $this->context = Context::getContext();
-        }
-        $this->context->cart = new Cart((int) $id_cart);
-        $this->context->customer = new Customer((int) $this->context->cart->id_customer);
-        // The tax cart is loaded before the customer so re-cache the tax calculation method
-        $this->context->cart->setTaxCalculationMethod();
-
-        $this->context->language = new Language((int) $this->context->cart->id_lang);
-        $this->context->shop = ($shop ? $shop : new Shop((int) $this->context->cart->id_shop));
-        ShopUrl::resetMainDomainCache();
-        $id_currency = $currency_special ? (int) $currency_special : (int) $this->context->cart->id_currency;
-        $this->context->currency = new Currency((int) $id_currency, null, (int) $this->context->shop->id);
-        if (Configuration::get('PS_TAX_ADDRESS_TYPE') == 'id_address_delivery') {
-            $context_country = $this->context->country;
+        /** @phpstan-ignore-next-line if.alwaysTrue */
+        if(version_compare(_PS_VERSION_, '9', '<')) {
+            require_once __DIR__ . "/src/Logger.php";
+            $logger = new CcvOnlinePaymentsPaymentPrestashopLogger();
+        }else{
+            require_once __DIR__ . "/src/LoggerV3.php";
+            $logger = new CcvOnlinePaymentsPaymentPrestashopLoggerV3();
         }
 
-        $order_status = new OrderState((int) $id_order_state, (int) $this->context->language->id);
-        if (!Validate::isLoadedObject($order_status)) {
-            PrestaShopLogger::addLog('PaymentModule::validateOrder - Order Status cannot be loaded', 3, null, 'Cart', (int) $id_cart, true);
 
-            throw new PrestaShopException('Can\'t load Order status');
-        }
-
-        if (!$this->active) {
-            PrestaShopLogger::addLog('PaymentModule::validateOrder - Module is not active', 3, null, 'Cart', (int) $id_cart, true);
-            die(Tools::displayError());
-        }
-
-        // Does order already exists ?
-        if (Validate::isLoadedObject($this->context->cart) && $this->context->cart->OrderExists() == false) {
-            if ($secure_key !== false && $secure_key != $this->context->cart->secure_key) {
-                PrestaShopLogger::addLog('PaymentModule::validateOrder - Secure key does not match', 3, null, 'Cart', (int) $id_cart, true);
-                die(Tools::displayError());
-            }
-
-            // For each package, generate an order
-            $delivery_option_list = $this->context->cart->getDeliveryOptionList();
-            $package_list = $this->context->cart->getPackageList();
-            $cart_delivery_option = $this->context->cart->getDeliveryOption();
-
-            // If some delivery options are not defined, or not valid, use the first valid option
-            foreach ($delivery_option_list as $id_address => $package) {
-                if (!isset($cart_delivery_option[$id_address]) || !array_key_exists($cart_delivery_option[$id_address], $package)) {
-                    foreach ($package as $key => $val) {
-                        $cart_delivery_option[$id_address] = $key;
-
-                        break;
-                    }
-                }
-            }
-
-            $order_list = array();
-            $order_detail_list = array();
-
-            $this->currentOrderReference = $reference;
-
-            $cart_total_paid = (float) Tools::ps_round((float) $this->context->cart->getOrderTotal(true, Cart::BOTH), 2);
-
-            foreach ($cart_delivery_option as $id_address => $key_carriers) {
-                foreach ($delivery_option_list[$id_address][$key_carriers]['carrier_list'] as $id_carrier => $data) {
-                    foreach ($data['package_list'] as $id_package) {
-                        // Rewrite the id_warehouse
-                        $package_list[$id_address][$id_package]['id_warehouse'] = (int) $this->context->cart->getPackageIdWarehouse($package_list[$id_address][$id_package], (int) $id_carrier);
-                        $package_list[$id_address][$id_package]['id_carrier'] = $id_carrier;
-                    }
-                }
-            }
-            // Make sure CartRule caches are empty
-            CartRule::cleanCache();
-            $cart_rules = $this->context->cart->getCartRules();
-            foreach ($cart_rules as $cart_rule) {
-                if (($rule = new CartRule((int) $cart_rule['obj']->id)) && Validate::isLoadedObject($rule)) {
-                    if ($error = $rule->checkValidity($this->context, true, true)) {
-                        $this->context->cart->removeCartRule((int) $rule->id);
-                        if (isset($this->context->cookie, $this->context->cookie->id_customer) && $this->context->cookie->id_customer && !empty($rule->code)) {
-                            Tools::redirect('index.php?controller=order&submitAddDiscount=1&discount_name=' . urlencode($rule->code));
-                        } else {
-                            $rule_name = isset($rule->name[(int) $this->context->cart->id_lang]) ? $rule->name[(int) $this->context->cart->id_lang] : $rule->code;
-                            $error = $this->trans('The cart rule named "%1s" (ID %2s) used in this cart is not valid and has been withdrawn from cart', array($rule_name, (int) $rule->id), 'Admin.Payment.Notification');
-                            PrestaShopLogger::addLog($error, 3, '0000002', 'Cart', (int) $this->context->cart->id);
-                        }
-                    }
-                }
-            }
-
-            // Amount paid by customer is not the right one -> Status = payment error
-            // We don't use the following condition to avoid the float precision issues : http://www.php.net/manual/en/language.types.float.php
-            // if ($order->total_paid != $order->total_paid_real)
-            // We use number_format in order to compare two string
-            if ($order_status->logable && number_format($cart_total_paid, _PS_PRICE_COMPUTE_PRECISION_) != number_format($amount_paid, _PS_PRICE_COMPUTE_PRECISION_)) {
-                $id_order_state = Configuration::get('PS_OS_ERROR');
-            }
-
-            foreach ($package_list as $id_address => $packageByAddress) {
-                foreach ($packageByAddress as $id_package => $package) {
-                    $orderData = $this->createOrderFromCart(
-                        $this->context->cart,
-                        $this->context->currency,
-                        $package['product_list'],
-                        $id_address,
-                        $this->context,
-                        $reference,
-                        $secure_key,
-                        $payment_method,
-                        $this->name,
-                        $dont_touch_amount,
-                        $amount_paid,
-                        $package_list[$id_address][$id_package]['id_warehouse'],
-                        $cart_total_paid,
-                        self::DEBUG_MODE,
-                        $order_status,
-                        $id_order_state,
-                        isset($package['id_carrier']) ? $package['id_carrier'] : null
-                    );
-                    $order = $orderData['order'];
-                    $order_list[] = $order;
-                    $order_detail_list[] = $orderData['orderDetail'];
-                }
-            }
-
-            // The country can only change if the address used for the calculation is the delivery address, and if multi-shipping is activated
-            if (Configuration::get('PS_TAX_ADDRESS_TYPE') == 'id_address_delivery') {
-                $this->context->country = $context_country;
-            }
-
-            if (!$this->context->country->active) {
-                PrestaShopLogger::addLog('PaymentModule::validateOrder - Country is not active', 3, null, 'Cart', (int) $id_cart, true);
-
-                throw new PrestaShopException('The order address country is not active.');
-            }
-
-            if (self::DEBUG_MODE) {
-                PrestaShopLogger::addLog('PaymentModule::validateOrder - Payment is about to be added', 1, null, 'Cart', (int) $id_cart, true);
-            }
-
-            // Register Payment only if the order status validate the order
-            if ($order_status->logable) {
-                // $order is the last order loop in the foreach
-                // The method addOrderPayment of the class Order make a create a paymentOrder
-                // linked to the order reference and not to the order id
-                if (isset($extra_vars['transaction_id'])) {
-                    $transaction_id = $extra_vars['transaction_id'];
-                } else {
-                    $transaction_id = null;
-                }
-
-                if (!$order->addOrderPayment($amount_paid, null, $transaction_id)) {
-                    PrestaShopLogger::addLog('PaymentModule::validateOrder - Cannot save Order Payment', 3, null, 'Cart', (int) $id_cart, true);
-
-                    throw new PrestaShopException('Can\'t save Order Payment');
-                }
-            }
-
-            // Next !
-            $only_one_gift = false;
-            $products = $this->context->cart->getProducts();
-
-            // Make sure CartRule caches are empty
-            CartRule::cleanCache();
-            foreach ($order_detail_list as $key => $order_detail) {
-                /** @var OrderDetail $order_detail */
-                $order = $order_list[$key];
-                if (isset($order->id)) {
-                    if (!$secure_key) {
-                        $message .= '<br />' . $this->trans('Warning: the secure key is empty, check your payment account before validation', array(), 'Admin.Payment.Notification');
-                    }
-                    // Optional message to attach to this order
-                    if (isset($message) & !empty($message)) {
-                        $msg = new Message();
-                        $message = strip_tags($message, '<br>');
-                        if (Validate::isCleanHtml($message)) {
-                            if (self::DEBUG_MODE) {
-                                PrestaShopLogger::addLog('PaymentModule::validateOrder - Message is about to be added', 1, null, 'Cart', (int) $id_cart, true);
-                            }
-                            $msg->message = $message;
-                            $msg->id_cart = (int) $id_cart;
-                            $msg->id_customer = (int) ($order->id_customer);
-                            $msg->id_order = (int) $order->id;
-                            $msg->private = 1;
-                            $msg->add();
-                        }
-                    }
-
-                    // Insert new Order detail list using cart for the current order
-                    //$orderDetail = new OrderDetail(null, null, $this->context);
-                    //$orderDetail->createList($order, $this->context->cart, $id_order_state);
-
-                    // Construct order detail table for the email
-                    $products_list = '';
-                    $virtual_product = true;
-
-                    $product_var_tpl_list = array();
-                    foreach ($order->product_list as $product) {
-                        $price = Product::getPriceStatic((int) $product['id_product'], false, ($product['id_product_attribute'] ? (int) $product['id_product_attribute'] : null), 6, null, false, true, $product['cart_quantity'], false, (int) $order->id_customer, (int) $order->id_cart, (int) $order->{Configuration::get('PS_TAX_ADDRESS_TYPE')}, $specific_price, true, true, null, true, $product['id_customization']);
-                        $price_wt = Product::getPriceStatic((int) $product['id_product'], true, ($product['id_product_attribute'] ? (int) $product['id_product_attribute'] : null), 2, null, false, true, $product['cart_quantity'], false, (int) $order->id_customer, (int) $order->id_cart, (int) $order->{Configuration::get('PS_TAX_ADDRESS_TYPE')}, $specific_price, true, true, null, true, $product['id_customization']);
-
-                        $product_price = Product::getTaxCalculationMethod() == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt;
-
-                        $product_var_tpl = array(
-                            'id_product' => $product['id_product'],
-                            'reference' => $product['reference'],
-                            'name' => $product['name'] . (isset($product['attributes']) ? ' - ' . $product['attributes'] : ''),
-                            'price' => Tools::displayPrice($product_price * $product['quantity'], $this->context->currency, false),
-                            'quantity' => $product['quantity'],
-                            'customization' => array(),
-                        );
-
-                        if (isset($product['price']) && $product['price']) {
-                            $product_var_tpl['unit_price'] = Tools::displayPrice($product_price, $this->context->currency, false);
-                            $product_var_tpl['unit_price_full'] = Tools::displayPrice($product_price, $this->context->currency, false)
-                                . ' ' . $product['unity'];
-                        } else {
-                            $product_var_tpl['unit_price'] = $product_var_tpl['unit_price_full'] = '';
-                        }
-
-                        $customized_datas = Product::getAllCustomizedDatas((int) $order->id_cart, null, true, null, (int) $product['id_customization']);
-                        if (isset($customized_datas[$product['id_product']][$product['id_product_attribute']])) {
-                            $product_var_tpl['customization'] = array();
-                            foreach ($customized_datas[$product['id_product']][$product['id_product_attribute']][$order->id_address_delivery] as $customization) {
-                                $customization_text = '';
-                                if (isset($customization['datas'][Product::CUSTOMIZE_TEXTFIELD])) {
-                                    foreach ($customization['datas'][Product::CUSTOMIZE_TEXTFIELD] as $text) {
-                                        $customization_text .= '<strong>' . $text['name'] . '</strong>: ' . $text['value'] . '<br />';
-                                    }
-                                }
-
-                                if (isset($customization['datas'][Product::CUSTOMIZE_FILE])) {
-                                    $customization_text .= $this->trans('%d image(s)', array(count($customization['datas'][Product::CUSTOMIZE_FILE])), 'Admin.Payment.Notification') . '<br />';
-                                }
-
-                                $customization_quantity = (int) $customization['quantity'];
-
-                                $product_var_tpl['customization'][] = array(
-                                    'customization_text' => $customization_text,
-                                    'customization_quantity' => $customization_quantity,
-                                    'quantity' => Tools::displayPrice($customization_quantity * $product_price, $this->context->currency, false),
-                                );
-                            }
-                        }
-
-                        $product_var_tpl_list[] = $product_var_tpl;
-                        // Check if is not a virutal product for the displaying of shipping
-                        if (!$product['is_virtual']) {
-                            $virtual_product &= false;
-                        }
-                    } // end foreach ($products)
-
-                    $product_list_txt = '';
-                    $product_list_html = '';
-                    if (count($product_var_tpl_list) > 0) {
-                        $product_list_txt = $this->getEmailTemplateContent('order_conf_product_list.txt', Mail::TYPE_TEXT, $product_var_tpl_list);
-                        $product_list_html = $this->getEmailTemplateContent('order_conf_product_list.tpl', Mail::TYPE_HTML, $product_var_tpl_list);
-                    }
-
-                    $total_reduction_value_ti = 0;
-                    $total_reduction_value_tex = 0;
-
-                    $cart_rules_list = $this->createOrderCartRules(
-                        $order,
-                        $this->context->cart,
-                        $order_list,
-                        $total_reduction_value_ti,
-                        $total_reduction_value_tex,
-                        $id_order_state
-                    );
-
-                    $cart_rules_list_txt = '';
-                    $cart_rules_list_html = '';
-                    if (count($cart_rules_list) > 0) {
-                        $cart_rules_list_txt = $this->getEmailTemplateContent('order_conf_cart_rules.txt', Mail::TYPE_TEXT, $cart_rules_list);
-                        $cart_rules_list_html = $this->getEmailTemplateContent('order_conf_cart_rules.tpl', Mail::TYPE_HTML, $cart_rules_list);
-                    }
-
-                    // Specify order id for message
-                    $old_message = Message::getMessageByCartId((int) $this->context->cart->id);
-                    if ($old_message && !$old_message['private']) {
-                        $update_message = new Message((int) $old_message['id_message']);
-                        $update_message->id_order = (int) $order->id;
-                        $update_message->update();
-
-                        // Add this message in the customer thread
-                        $customer_thread = new CustomerThread();
-                        $customer_thread->id_contact = 0;
-                        $customer_thread->id_customer = (int) $order->id_customer;
-                        $customer_thread->id_shop = (int) $this->context->shop->id;
-                        $customer_thread->id_order = (int) $order->id;
-                        $customer_thread->id_lang = (int) $this->context->language->id;
-                        $customer_thread->email = $this->context->customer->email;
-                        $customer_thread->status = 'open';
-                        $customer_thread->token = Tools::passwdGen(12);
-                        $customer_thread->add();
-
-                        $customer_message = new CustomerMessage();
-                        $customer_message->id_customer_thread = $customer_thread->id;
-                        $customer_message->id_employee = 0;
-                        $customer_message->message = $update_message->message;
-                        $customer_message->private = 1;
-
-                        if (!$customer_message->add()) {
-                            $this->errors[] = $this->trans('An error occurred while saving message', array(), 'Admin.Payment.Notification');
-                        }
-                    }
-
-                    if (self::DEBUG_MODE) {
-                        PrestaShopLogger::addLog('PaymentModule::validateOrder - Hook validateOrder is about to be called', 1, null, 'Cart', (int) $id_cart, true);
-                    }
-
-                    // Hook validate order
-                    Hook::exec('actionValidateOrder', array(
-                        'cart' => $this->context->cart,
-                        'order' => $order,
-                        'customer' => $this->context->customer,
-                        'currency' => $this->context->currency,
-                        'orderStatus' => $order_status,
-                    ));
-
-                    foreach ($this->context->cart->getProducts() as $product) {
-                        if ($order_status->logable) {
-                            ProductSale::addProductSale((int) $product['id_product'], (int) $product['cart_quantity']);
-                        }
-                    }
-
-                    if (self::DEBUG_MODE) {
-                        PrestaShopLogger::addLog('PaymentModule::validateOrder - Order Status is about to be added', 1, null, 'Cart', (int) $id_cart, true);
-                    }
-
-                    // Set the order status
-                    $new_history = new OrderHistory();
-                    $new_history->id_order = (int) $order->id;
-                    $new_history->changeIdOrderState((int) $id_order_state, $order, true);
-                    $new_history->addWithemail(true, $extra_vars);
-
-                    // Switch to back order if needed
-                    if (Configuration::get('PS_STOCK_MANAGEMENT') &&
-                        ($order_detail->getStockState() ||
-                            $order_detail->product_quantity_in_stock < 0)) {
-                        $history = new OrderHistory();
-                        $history->id_order = (int) $order->id;
-                        $history->changeIdOrderState(Configuration::get($order->hasBeenPaid() ? 'PS_OS_OUTOFSTOCK_PAID' : 'PS_OS_OUTOFSTOCK_UNPAID'), $order, true);
-                        $history->addWithemail();
-                    }
-
-                    unset($order_detail);
-
-                    // Order is reloaded because the status just changed
-                    $order = new Order((int) $order->id);
-
-                    // Send an e-mail to customer (one order = one email)
-                    if ($id_order_state != Configuration::get('PS_OS_ERROR') && $id_order_state != Configuration::get('PS_OS_CANCELED') && $this->context->customer->id) {
-                        $invoice = new Address((int) $order->id_address_invoice);
-                        $delivery = new Address((int) $order->id_address_delivery);
-                        $delivery_state = $delivery->id_state ? new State((int) $delivery->id_state) : false;
-                        $invoice_state = $invoice->id_state ? new State((int) $invoice->id_state) : false;
-                        $carrier = $order->id_carrier ? new Carrier($order->id_carrier) : false;
-
-                        $data = array(
-                            '{firstname}' => $this->context->customer->firstname,
-                            '{lastname}' => $this->context->customer->lastname,
-                            '{email}' => $this->context->customer->email,
-                            '{delivery_block_txt}' => $this->_getFormatedAddress($delivery, AddressFormat::FORMAT_NEW_LINE),
-                            '{invoice_block_txt}' => $this->_getFormatedAddress($invoice, AddressFormat::FORMAT_NEW_LINE),
-                            '{delivery_block_html}' => $this->_getFormatedAddress($delivery, '<br />', array(
-                                'firstname' => '<span style="font-weight:bold;">%s</span>',
-                                'lastname' => '<span style="font-weight:bold;">%s</span>',
-                            )),
-                            '{invoice_block_html}' => $this->_getFormatedAddress($invoice, '<br />', array(
-                                'firstname' => '<span style="font-weight:bold;">%s</span>',
-                                'lastname' => '<span style="font-weight:bold;">%s</span>',
-                            )),
-                            '{delivery_company}' => $delivery->company,
-                            '{delivery_firstname}' => $delivery->firstname,
-                            '{delivery_lastname}' => $delivery->lastname,
-                            '{delivery_address1}' => $delivery->address1,
-                            '{delivery_address2}' => $delivery->address2,
-                            '{delivery_city}' => $delivery->city,
-                            '{delivery_postal_code}' => $delivery->postcode,
-                            '{delivery_country}' => $delivery->country,
-                            '{delivery_state}' => $delivery->id_state ? $delivery_state->name : '',
-                            '{delivery_phone}' => ($delivery->phone) ? $delivery->phone : $delivery->phone_mobile,
-                            '{delivery_other}' => $delivery->other,
-                            '{invoice_company}' => $invoice->company,
-                            '{invoice_vat_number}' => $invoice->vat_number,
-                            '{invoice_firstname}' => $invoice->firstname,
-                            '{invoice_lastname}' => $invoice->lastname,
-                            '{invoice_address2}' => $invoice->address2,
-                            '{invoice_address1}' => $invoice->address1,
-                            '{invoice_city}' => $invoice->city,
-                            '{invoice_postal_code}' => $invoice->postcode,
-                            '{invoice_country}' => $invoice->country,
-                            '{invoice_state}' => $invoice->id_state ? $invoice_state->name : '',
-                            '{invoice_phone}' => ($invoice->phone) ? $invoice->phone : $invoice->phone_mobile,
-                            '{invoice_other}' => $invoice->other,
-                            '{order_name}' => $order->getUniqReference(),
-                            '{date}' => Tools::displayDate(date('Y-m-d H:i:s'), null, 1),
-                            '{carrier}' => ($virtual_product || !isset($carrier->name)) ? $this->trans('No carrier', array(), 'Admin.Payment.Notification') : $carrier->name,
-                            '{payment}' => Tools::substr($order->payment, 0, 255),
-                            '{products}' => $product_list_html,
-                            '{products_txt}' => $product_list_txt,
-                            '{discounts}' => $cart_rules_list_html,
-                            '{discounts_txt}' => $cart_rules_list_txt,
-                            '{total_paid}' => Tools::displayPrice($order->total_paid, $this->context->currency, false),
-                            '{total_products}' => Tools::displayPrice(Product::getTaxCalculationMethod() == PS_TAX_EXC ? $order->total_products : $order->total_products_wt, $this->context->currency, false),
-                            '{total_discounts}' => Tools::displayPrice($order->total_discounts, $this->context->currency, false),
-                            '{total_shipping}' => Tools::displayPrice($order->total_shipping, $this->context->currency, false),
-                            '{total_shipping_tax_excl}' => Tools::displayPrice($order->total_shipping_tax_excl, $this->context->currency, false),
-                            '{total_shipping_tax_incl}' => Tools::displayPrice($order->total_shipping_tax_incl, $this->context->currency, false),
-                            '{total_wrapping}' => Tools::displayPrice($order->total_wrapping, $this->context->currency, false),
-                            '{total_tax_paid}' => Tools::displayPrice(($order->total_products_wt - $order->total_products) + ($order->total_shipping_tax_incl - $order->total_shipping_tax_excl), $this->context->currency, false),
-                        );
-
-                        if (is_array($extra_vars)) {
-                            $data = array_merge($data, $extra_vars);
-                        }
-
-                        // Join PDF invoice
-                        if ((int) Configuration::get('PS_INVOICE') && $order_status->invoice && $order->invoice_number) {
-                            $order_invoice_list = $order->getInvoicesCollection();
-                            Hook::exec('actionPDFInvoiceRender', array('order_invoice_list' => $order_invoice_list));
-                            $pdf = new PDF($order_invoice_list, PDF::TEMPLATE_INVOICE, $this->context->smarty);
-                            $file_attachement['content'] = $pdf->render(false);
-                            $file_attachement['name'] = Configuration::get('PS_INVOICE_PREFIX', (int) $order->id_lang, null, $order->id_shop) . sprintf('%06d', $order->invoice_number) . '.pdf';
-                            $file_attachement['mime'] = 'application/pdf';
-                        } else {
-                            $file_attachement = null;
-                        }
-
-                        if (self::DEBUG_MODE) {
-                            PrestaShopLogger::addLog('PaymentModule::validateOrder - Mail is about to be sent', 1, null, 'Cart', (int) $id_cart, true);
-                        }
-
-                        $orderLanguage = new Language((int) $order->id_lang);
-
-                        if (Validate::isEmail($this->context->customer->email)) {
-                            Mail::Send(
-                                (int) $order->id_lang,
-                                'order_conf',
-                                Context::getContext()->getTranslator()->trans(
-                                    'Order confirmation',
-                                    array(),
-                                    'Emails.Subject',
-                                    $orderLanguage->locale
-                                ),
-                                $data,
-                                $this->context->customer->email,
-                                $this->context->customer->firstname . ' ' . $this->context->customer->lastname,
-                                null,
-                                null,
-                                $file_attachement,
-                                null,
-                                _PS_MAIL_DIR_,
-                                false,
-                                (int) $order->id_shop
-                            );
-                        }
-                    }
-
-                    // updates stock in shops
-                    if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
-                        $product_list = $order->getProducts();
-                        foreach ($product_list as $product) {
-                            // if the available quantities depends on the physical stock
-                            if (StockAvailable::dependsOnStock($product['product_id'])) {
-                                // synchronizes
-                                StockAvailable::synchronize($product['product_id'], $order->id_shop);
-                            }
-                        }
-                    }
-
-                    $order->updateOrderDetailTax();
-
-                    // sync all stock
-                    (new StockManager())->updatePhysicalProductQuantity(
-                        (int)$order->id_shop,
-                        (int)Configuration::get('PS_OS_ERROR'),
-                        (int)Configuration::get('PS_OS_CANCELED'),
-                        null,
-                        (int)$order->id
-                    );
-                } else {
-                    $error = $this->trans('Order creation failed', array(), 'Admin.Payment.Notification');
-                    PrestaShopLogger::addLog($error, 4, '0000002', 'Cart', (int) ($order->id_cart));
-                    die(Tools::displayError($error));
-                }
-            } // End foreach $order_detail_list
-
-            // Use the last order as currentOrder
-            if (isset($order) && $order->id) {
-                $this->currentOrder = (int) $order->id;
-            }
-
-            if (self::DEBUG_MODE) {
-                PrestaShopLogger::addLog('PaymentModule::validateOrder - End of validateOrder', 1, null, 'Cart', (int) $id_cart, true);
-            }
-
-            return true;
-        } else {
-            $error = $this->trans('Cart cannot be loaded or an order has already been placed using this cart', array(), 'Admin.Payment.Notification');
-            PrestaShopLogger::addLog($error, 4, '0000001', 'Cart', (int) ($this->context->cart->id));
-            die(Tools::displayError($error));
-        }
-    }
-
-    public function getApi() : CcvOnlinePaymentsApi {
         $api =  new CcvOnlinePaymentsApi(
             new CcvOnlinePaymentsPaymentPrestashopCache(),
-            new CcvOnlinePaymentsPaymentPrestashopLogger(),
-            Configuration::get('CCVONLINEPAYMENTS_API_KEY')
+            $logger,
+            $apiKey
         );
 
         $api->setMetadata([
@@ -951,15 +437,18 @@ class CcvOnlinePayments extends PaymentModule
         return $api;
     }
 
-    public function hasMethodImage($methodId) {
+    public function hasMethodImage(string $methodId) : bool {
         return file_exists(__DIR__."/images/methods/".$methodId.".png");
     }
 
-    public function getMethodImagePath($methodId) {
+    public function getMethodImagePath(string $methodId) : string {
         return $this->_path."images/methods/".$methodId.".png";
     }
 
-    public function hookActionOrderSlipAdd($params = [])
+    /**
+     * @param array<mixed> $params
+     */
+    public function hookActionOrderSlipAdd(array $params = []) : bool
     {
         if ($params['order']->module !== 'ccvonlinepayments') {
             return false;
@@ -970,7 +459,11 @@ class CcvOnlinePayments extends PaymentModule
             pSQL($params['order']->reference)
         ));
 
-        if(isset($payment['transaction_type']) && $payment['transaction_type'] === \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE) {
+        if(!is_array($payment)) {
+            return false;
+        }
+
+        if(isset($payment['transaction_type']) && $payment['transaction_type'] === \CCVOnlinePayments\Lib\Enum\TransactionType::AUTHORIZE->value) {
             $refundPaymentReference = isset($payment['capture_reference']) ? $payment['capture_reference'] : "";
         }else{
             $refundPaymentReference = isset($payment['payment_reference']) ? $payment['payment_reference'] : "";
@@ -988,7 +481,7 @@ class CcvOnlinePayments extends PaymentModule
         }
 
         if($method === null) {
-            return;
+            return false;
         }
 
         if(Tools::getValue('partialRefundShippingCost')) {
@@ -1015,23 +508,27 @@ class CcvOnlinePayments extends PaymentModule
             $refundRequest->setOrderLines($this->getOrderlinesByOrder($params['order'], $params['productList'], $shippingCost));
         }
 
-        $session = $this->get('session');
         try {
-            $refundResponse = $this->getApi()->createRefund($refundRequest);
+            $this->getApi()->createRefund($refundRequest);
         }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
             $errorMessage = $this->trans("The partial refund has been created, but we failed to create a refund at CCV Online Payments: ", [],"Modules.Ccvonlinepayments.Admin").$apiException->getMessage();
-            $session->getFlashBag()->add('error', $errorMessage);
+            $this->getFlashBag()?->add('error', $errorMessage);
             $this->addMessageToOrder($params['order'], $errorMessage);
             return false;
         }
 
         $successMessage = $this->trans("The refunded has been created at CCV Online Payments", [],"Modules.Ccvonlinepayments.Admin");
-        $session->getFlashBag()->add('success', $successMessage);
+        $this->getFlashBag()?->add('success', $successMessage);
         return true;
     }
 
-    protected function getOrderStates() {
-        $states = OrderState::getOrderStates((int)$this->context->language->id);
+    /**
+     * @return array<array{'id': int, 'name': string}>
+     */
+    protected function getOrderStates() : array {
+        /** @var ?Language $language */
+        $language = $this->context->language;
+        $states = OrderState::getOrderStates($language->id ?? 0);
 
         $retVal = [];
         foreach ($states as $state) {
@@ -1044,12 +541,15 @@ class CcvOnlinePayments extends PaymentModule
         return $retVal;
     }
 
-    public function getOrderlinesByCart($cart) {
+    /**
+     * @return array<\CCVOnlinePayments\Lib\OrderLine>
+     */
+    public function getOrderlinesByCart(Cart $cart) : array{
         $orderLines = [];
 
         foreach($cart->getProducts() as $cartProduct) {
             $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
-            $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_PHYSICAL);
+            $orderLine->setType(\CCVOnlinePayments\Lib\Enum\OrderLineType::PHYSICAL);
             $orderLine->setName($cartProduct['name']);
             $orderLine->setQuantity($cartProduct['cart_quantity']);
             $orderLine->setTotalPrice(Tools::ps_round($cartProduct['total_wt'], 2));
@@ -1070,7 +570,7 @@ class CcvOnlinePayments extends PaymentModule
             $vatAmount = Tools::ps_round($shippingCost - $shippingCostExclVat, 2);
 
             $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
-            $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_SHIPPING_FEE);
+            $orderLine->setType(\CCVOnlinePayments\Lib\Enum\OrderLineType::SHIPPING_FEE);
             $orderLine->setName("Shipping");
             $orderLine->setQuantity(1);;
             $orderLine->setTotalPrice($shippingCost);
@@ -1084,34 +584,40 @@ class CcvOnlinePayments extends PaymentModule
         if ($cart->getOrderTotal(true, Cart::ONLY_DISCOUNTS) > 0) {
             $rules = $cart->getCartRules(CartRule::FILTER_ACTION_ALL, false);
 
-            foreach($rules as $rule) {
-                $vatRate = (($rule["value_real"] / $rule["value_tax_exc"]) - 1) * 100;
-                $vatRate = Tools::ps_round($vatRate, 2);
-                $value   = Tools::ps_round($rule["value_real"], 2);
+            if(is_array($rules)) {
+                foreach($rules as $rule) {
+                    $vatRate = (($rule["value_real"] / $rule["value_tax_exc"]) - 1) * 100;
+                    $vatRate = Tools::ps_round($vatRate, 2);
+                    $value   = Tools::ps_round($rule["value_real"], 2);
 
-                if($value > 0) {
-                    $vatValue = $value - ($value / (1 + ($vatRate / 100)));
-                    $vatValue = Tools::ps_round($vatValue, 2);
-                }else{
-                    $vatValue = 0;
+                    if($value > 0) {
+                        $vatValue = $value - ($value / (1 + ($vatRate / 100)));
+                        $vatValue = Tools::ps_round($vatValue, 2);
+                    }else{
+                        $vatValue = 0;
+                    }
+
+                    $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
+                    $orderLine->setType(\CCVOnlinePayments\Lib\Enum\OrderLineType::DISCOUNT);
+                    $orderLine->setName($rule['name']);
+                    $orderLine->setQuantity(1);;
+                    $orderLine->setTotalPrice($value);
+                    $orderLine->setVat($vatValue);
+                    $orderLine->setVatRate($vatRate);
+                    $orderLine->setUnitPrice($value);
+                    $orderLines[] = $orderLine;
                 }
-
-                $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
-                $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_DISCOUNT);
-                $orderLine->setName($rule['name']);
-                $orderLine->setQuantity(1);;
-                $orderLine->setTotalPrice($value);
-                $orderLine->setVat($vatValue);
-                $orderLine->setVatRate($vatRate);
-                $orderLine->setUnitPrice($value);
-                $orderLines[] = $orderLine;
             }
         }
 
         return $orderLines;
     }
 
-    public function getOrderlinesByOrder($order, $productList, $partialRefundShippingCost) {
+    /**
+     * @param array<int, mixed> $productList
+     * @return array<\CCVOnlinePayments\Lib\OrderLine>
+     */
+    public function getOrderlinesByOrder(Order $order, array $productList, float $partialRefundShippingCost) : array {
         $orderLines = [];
 
         foreach($order->getProducts() as $orderProduct) {
@@ -1119,13 +625,13 @@ class CcvOnlinePayments extends PaymentModule
 
             if($productListItem['quantity'] > 0) {
                 $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
-                $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_PHYSICAL);
+                $orderLine->setType(\CCVOnlinePayments\Lib\Enum\OrderLineType::PHYSICAL);
                 $orderLine->setName($orderProduct['product_name']);
                 $orderLine->setQuantity($productListItem['quantity']);
-                $orderLine->setTotalPrice($productListItem['total_refund_tax_incl']);
+                $orderLine->setTotalPrice($productListItem['total_refunded_tax_incl']);
                 $orderLine->setUnit('pcs');
-                $orderLine->setVatRate($orderProduct['tax'] * 100);
-                $orderLine->setVat($productListItem['total_refund_tax_incl'] - $productListItem['total_refund_tax_excl']);
+                $orderLine->setVatRate($orderProduct['tax_rate']);
+                $orderLine->setVat($productListItem['total_refunded_tax_incl'] - $productListItem['total_refunded_tax_excl']);
                 $orderLines[] = $orderLine;
             }
         }
@@ -1133,7 +639,7 @@ class CcvOnlinePayments extends PaymentModule
         $shippingCost = $partialRefundShippingCost;
         if ($shippingCost > 0) {
             $orderLine = new \CCVOnlinePayments\Lib\OrderLine();
-            $orderLine->setType(\CCVOnlinePayments\Lib\OrderLine::TYPE_SHIPPING_FEE);
+            $orderLine->setType(\CCVOnlinePayments\Lib\Enum\OrderLineType::SHIPPING_FEE);
             $orderLine->setName("Shipping");
             $orderLine->setQuantity(1);;
             $orderLine->setTotalPrice($shippingCost);
@@ -1144,7 +650,10 @@ class CcvOnlinePayments extends PaymentModule
         return $orderLines;
     }
 
-    public function hookActionOrderHistoryAddAfter($params)
+    /**
+     * @param array<mixed> $params
+     */
+    public function hookActionOrderHistoryAddAfter(array $params) : void
     {
         $orderHistory = $params['order_history'];
 
@@ -1162,7 +671,7 @@ class CcvOnlinePayments extends PaymentModule
         $order = new Order((int) $orderId);
 
         if ($order->module !== 'ccvonlinepayments') {
-            return false;
+            return;
         }
 
         $payment = Db::getInstance()->getRow(sprintf(
@@ -1170,9 +679,20 @@ class CcvOnlinePayments extends PaymentModule
             pSQL($order->reference)
         ));
 
-        $orderStatus = new OrderState((int)$newOrderStateId);
-        if(isset($orderStatus->template)) {
-            foreach($orderStatus->template as $template) {
+        if(!is_array($payment)) {
+            return;
+        }
+
+        $orderStatus = new OrderState($newOrderStateId);
+
+        /** @var null|string[]|string $orderStatusTemplate */
+        $orderStatusTemplate = $orderStatus->template;
+        if(is_string($orderStatusTemplate)) {
+            $orderStatusTemplate = [$orderStatusTemplate];
+        }
+
+        if($orderStatusTemplate !== null) {
+            foreach($orderStatusTemplate as $template) {
                 if($template === "refund") {
                     $this->refund($order);
                     break;
@@ -1180,12 +700,12 @@ class CcvOnlinePayments extends PaymentModule
             }
         }
 
-        if($payment['transaction_type'] !== \CCVOnlinePayments\Lib\PaymentRequest::TRANSACTION_TYPE_AUTHORIZE) {
-            return false;
+        if($payment['transaction_type'] !== \CCVOnlinePayments\Lib\Enum\TransactionType::AUTHORIZE->value) {
+            return;
         }
 
-        $captureStates = explode(',', Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE'));
-        $reversalStates = explode(',', Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL'));
+        $captureStates = explode(',', strval(Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_CAPTURE')));
+        $reversalStates = explode(',', strval(Configuration::get('CCVONLINEPAYMENTS_ORDER_STATUS_REVERSAL')));
 
         try {
             if (in_array($newOrderStateId, $captureStates)) {
@@ -1196,14 +716,11 @@ class CcvOnlinePayments extends PaymentModule
                 $this->reversal($order, $payment['payment_reference']);
             }
         }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
-            $session = $this->get('session');
-            if($session !== null) {
-                $session->getFlashBag()->add('error', $apiException->getMessage());
-            }
+            $this->getFlashBag()?->add('error', $apiException->getMessage());
         }
     }
 
-    private function capture($order, $paymentReference) {
+    private function capture(Order $order, string $paymentReference) : void {
         $captureRequest = new \CCVOnlinePayments\Lib\CaptureRequest();
         $captureRequest->setReference($paymentReference);
         $captureRequest->setAmount($order->total_paid);
@@ -1221,7 +738,7 @@ class CcvOnlinePayments extends PaymentModule
         );
     }
 
-    private function reversal($order, $paymentReference) {
+    private function reversal(Order $order, string $paymentReference) : void {
         global $cookie;
         if($cookie->id_employee > 0) {
             $payment = Db::getInstance()->getRow(sprintf(
@@ -1229,11 +746,13 @@ class CcvOnlinePayments extends PaymentModule
                 pSQL($order->reference)
             ));
 
+            if(!is_array($payment)) {
+                return;
+            }
+
             if(array_key_exists('capture_reference', $payment) && $payment['capture_reference'] !== null) {
                 $errorMessage = $this->trans("This order has already been (partially) captured. The captured part of the order cannot be reversed. Please create a refund using the partial refund functionality.", [],"Modules.Ccvonlinepayments.Admin");
-
-                $session = $this->get('session');
-                $session->getFlashBag()->add('error', $errorMessage);
+                $this->getFlashBag()?->add('error', $errorMessage);
                 $this->addMessageToOrder($order, $errorMessage);
             }
         }
@@ -1243,45 +762,56 @@ class CcvOnlinePayments extends PaymentModule
         $this->getApi()->createReversal($reversalRequest);
     }
 
-    private function refund($order) {
+    private function refund(Order $order) : void {
         global $cookie;
 
         if ($order->module !== 'ccvonlinepayments') {
-            return false;
+            return;
         }
 
         if($cookie->id_employee > 0) {
             $errorMessage = $this->trans("Changing the status to refunded will not create a refund at CCV Online Payments. Please use the partial refund functionality.", [],"Modules.Ccvonlinepayments.Admin");
-
-            $session = $this->get('session');
-            $session->getFlashBag()->add('error', $errorMessage);
+            $this->getFlashBag()?->add('error', $errorMessage);
             $this->addMessageToOrder($order, $errorMessage);
         }
     }
 
-    private function addMessageToOrder($order, $message) {
+    private function addMessageToOrder(Order $order, string $message) : void {
         global $cookie;
 
         $customer_thread = new CustomerThread();
         $customer_thread->id_contact = 0;
         $customer_thread->id_customer = (int) $order->id_customer;
-        $customer_thread->id_shop = (int) $order->shop->id;
+        $customer_thread->id_shop = (int) $order->id_shop;
         $customer_thread->id_order = (int) $order->id;
-        $customer_thread->id_lang = (int) $order->language->id;
-        $customer_thread->email = $order->customer->email;
+        $customer_thread->id_lang = (int) $order->id_lang;
+        $customer_thread->email = $order->getCustomer()->email;
         $customer_thread->status = 'open';
         $customer_thread->token = Tools::passwdGen(12);
         $customer_thread->add();
 
-
         $msg = new CustomerMessage();
         $message = strip_tags($message, '<br>');
         $msg->message = $message;
-        $msg->id_order = intval($order->id);
-        $msg->id_customer_thread = $customer_thread->id;
+        $msg->id_customer_thread = (int)$customer_thread->id;
         $msg->id_employee = $cookie->id_employee;
-        $msg->private = 1;
+        $msg->private = true;
         $msg->add();
+    }
+
+    private function getFlashBag() : ?\Symfony\Component\HttpFoundation\Session\Flash\FlashBag {
+        /** @var ?\Symfony\Component\HttpFoundation\Session\Session $session */
+        /** @phpstan-ignore-next-line class.notFound */
+        $session = $this->context->controller?->getContainer()?->get('request_stack')?->getSession();
+        if($session === null) {
+            /** @var ?\Symfony\Component\HttpFoundation\Session\Session $session */
+            $session = $this->get('session');
+        }
+
+        /** @var ?\Symfony\Component\HttpFoundation\Session\Flash\FlashBag $flashBag */
+        $flashBag =  $session?->getFlashBag();
+
+        return $flashBag;
     }
 
 

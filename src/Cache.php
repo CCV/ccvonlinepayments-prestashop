@@ -1,7 +1,7 @@
 <?php
 class CcvOnlinePaymentsPaymentPrestashopCache extends \CCVOnlinePayments\Lib\Cache {
 
-    private $cache;
+    private Cache $cache;
 
     public function __construct()
     {
