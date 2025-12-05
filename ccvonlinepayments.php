@@ -20,7 +20,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.6.0';
+        $this->version = '1.6.1';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '9.0.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -52,7 +52,7 @@ class CcvOnlinePayments extends PaymentModule
             die('CCV OnlinePayments requires php '.self::CCVONLINEPAYMENTS_MIN_PHP_VERSION.' or greater.');
         }
 
-        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('paymentReturn') || !$this->registerHook('actionOrderSlipAdd') || !$this->registerHook('actionOrderHistoryAddAfter')) {
+        if (!parent::install() || !$this->registerHook('paymentOptions') || !$this->registerHook('actionOrderSlipAdd') || !$this->registerHook('actionOrderHistoryAddAfter')) {
             return false;
         }
 
