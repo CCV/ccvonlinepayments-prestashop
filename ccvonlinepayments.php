@@ -20,7 +20,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.6.1';
+        $this->version = '1.7.0';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '9.0.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -117,7 +117,7 @@ class CcvOnlinePayments extends PaymentModule
             case "card_mastercard": $methodName = $this->trans("Mastercard",                    [], "Modules.Ccvonlinepayments.Shop"); break;
             case "card_visa":       $methodName = $this->trans("Visa",                          [], "Modules.Ccvonlinepayments.Shop"); break;
             case "card_amex":       $methodName = $this->trans("American Express",              [], "Modules.Ccvonlinepayments.Shop"); break;
-            case "ideal":           $methodName = $this->trans("iDeal",                         [], "Modules.Ccvonlinepayments.Shop"); break;
+            case "ideal":           $methodName = $this->trans("iDEAL | Wero",                  [], "Modules.Ccvonlinepayments.Shop"); break;
             case "paypal":          $methodName = $this->trans("PayPal",                        [], "Modules.Ccvonlinepayments.Shop"); break;
             case "landingpage":     $methodName = $this->trans("CCV Online Payments",           [], "Modules.Ccvonlinepayments.Shop"); break;
             case "giropay":         $methodName = $this->trans("GiroPay",                       [], "Modules.Ccvonlinepayments.Shop"); break;

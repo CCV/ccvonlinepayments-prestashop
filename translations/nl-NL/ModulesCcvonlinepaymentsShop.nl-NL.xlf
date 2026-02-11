@@ -1,116 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
-  <file original="admin639tc91rn" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
+  <file original="ModulesCcvonlinepaymentsShop.xlf" source-language="nl-NL" target-language="nl-NL" datatype="plaintext">
     <body>
-      <trans-unit id="09e81d9430aa5e66ae26df8b1130af19">
-        <source>Your payment was unsuccessful. Please try again</source>
-        <target>Uw betaling is niet gelukt. Probeer het alstublieft opnieuw.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="f2dc2ca917f0c14b657b47190d7fd3a1">
-        <source>You are not authorized to view this page</source>
-        <target>U heeft geen rechten om deze pagina te bekijken</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
-        <source>This payment method is not available.</source>
-        <target>De betaalmethode is niet beschikbaar.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="ae3f3ffc5b8b459be6324348be16b94b">
-        <source>There was an unexpected error processing your payment</source>
-        <target>Er heeft zich een onverwachte fout voorgedaan tijdens het verwerken van uw betaling</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="697abb9a95cfe2c76cc3b71312ea176a">
-        <source>Apple Pay</source>
-        <target>Apple Pay</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="3726d2bc671a53445f9f57095bf9d76b">
-        <source>Bank Transfer</source>
-        <target>Overboeking</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="870cf6bc77bbadd038aeb8d942c9cb18">
-        <source>Bancontact</source>
-        <target>Bancontact</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="2aaa3e8ae5da0cb963cd62087faf5566">
-        <source>Maestro</source>
-        <target>Maestro</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="b48167465ffc278e8096a57fb3e5cf24">
-        <source>Mastercard</source>
-        <target>Mastercard</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="89fc0d6fe12b0e0c1af5c7a0373435a6">
-        <source>Visa</source>
-        <target>Visa</target>
-        <note>Line: </note>
+      <trans-unit id="91e40c69ca45fe7bd498e4050eea4625">
+        <source>AliPay</source>
+        <target>AliPay</target>
       </trans-unit>
       <trans-unit id="b993f20c6e3b73949a96e934a76bbfef">
         <source>American Express</source>
         <target>American Express</target>
-        <note>Line: </note>
       </trans-unit>
-      <trans-unit id="78de7a286d3bd3aaa82600efa0da115a">
-        <source>iDeal</source>
-        <target>iDeal</target>
-        <note>Line: </note>
+      <trans-unit id="697abb9a95cfe2c76cc3b71312ea176a">
+        <source>Apple Pay</source>
+        <target>Apple Pay</target>
       </trans-unit>
-      <trans-unit id="ad69e733ebae8d264bccaa38d68830e8">
-        <source>PayPal</source>
-        <target>PayPal</target>
-        <note>Line: </note>
+      <trans-unit id="870cf6bc77bbadd038aeb8d942c9cb18">
+        <source>Bancontact</source>
+        <target>Bancontact</target>
+      </trans-unit>
+      <trans-unit id="3726d2bc671a53445f9f57095bf9d76b">
+        <source>Bank Transfer</source>
+        <target>Overboeking</target>
       </trans-unit>
       <trans-unit id="3532bdd74b1792db9ec0488e4a041faf">
         <source>CCV Online Payments</source>
         <target>CCV Online Payments</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="6930dcd5b48a4435ce041deacd11dbc7">
-        <source>GiroPay</source>
-        <target>GiroPay</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="0b05fc0c4414500fae781013db83c33d">
-        <source>Terminal (instore solution)</source>
-        <target>Terminal (instore solution)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="d076634caa41feb172c205ddc8bf14fb">
-        <source>Payconiq</source>
-        <target>Payconiq</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="84e5e5128d886ca0c340ee5a407eaf1c">
-        <source>Eps</source>
-        <target>Eps</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="91e40c69ca45fe7bd498e4050eea4625">
-        <source>AliPay</source>
-        <target>AliPay</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="2c561672f804e764c57e7b9f391f34f0">
-        <source>Klarna</source>
-        <target>Klarna</target>
-        <note>Line: </note>
       </trans-unit>
       <trans-unit id="41981a88357bf8207e3ed755cf970c8e">
         <source>Choose your bank...</source>
         <target>Kies uw bank...</target>
-        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="84e5e5128d886ca0c340ee5a407eaf1c">
+        <source>Eps</source>
+        <target>Eps</target>
+      </trans-unit>
+      <trans-unit id="6930dcd5b48a4435ce041deacd11dbc7">
+        <source>GiroPay</source>
+        <target>GiroPay</target>
+      </trans-unit>
+      <trans-unit id="a69a8e250d7465b3357efed7e4251deb">
+        <source>Google Pay</source>
+        <target>Google Pay</target>
+      </trans-unit>
+      <trans-unit id="2c561672f804e764c57e7b9f391f34f0">
+        <source>Klarna</source>
+        <target>Klarna</target>
+      </trans-unit>
+      <trans-unit id="2aaa3e8ae5da0cb963cd62087faf5566">
+        <source>Maestro</source>
+        <target>Maestro</target>
+      </trans-unit>
+      <trans-unit id="b48167465ffc278e8096a57fb3e5cf24">
+        <source>Mastercard</source>
+        <target>Mastercard</target>
+      </trans-unit>
+      <trans-unit id="ad69e733ebae8d264bccaa38d68830e8">
+        <source>PayPal</source>
+        <target>PayPal</target>
+      </trans-unit>
+      <trans-unit id="d076634caa41feb172c205ddc8bf14fb">
+        <source>Payconiq</source>
+        <target>Payconiq</target>
       </trans-unit>
       <trans-unit id="e824ef7f592e1579dd444bc72890baed">
         <source>Payment pending</source>
         <target>Betaling in behandeling</target>
-        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="0b05fc0c4414500fae781013db83c33d">
+        <source>Terminal (instore solution)</source>
+        <target>Terminal (instore solution)</target>
+      </trans-unit>
+      <trans-unit id="ae3f3ffc5b8b459be6324348be16b94b">
+        <source>There was an unexpected error processing your payment</source>
+        <target>Er heeft zich een onverwachte fout voorgedaan tijdens het verwerken van uw betaling</target>
+      </trans-unit>
+      <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
+        <source>This payment method is not available.</source>
+        <target>De betaalmethode is niet beschikbaar.</target>
+      </trans-unit>
+      <trans-unit id="89fc0d6fe12b0e0c1af5c7a0373435a6">
+        <source>Visa</source>
+        <target>Visa</target>
+      </trans-unit>
+      <trans-unit id="f2dc2ca917f0c14b657b47190d7fd3a1">
+        <source>You are not authorized to view this page</source>
+        <target>U heeft geen rechten om deze pagina te bekijken</target>
+      </trans-unit>
+      <trans-unit id="09e81d9430aa5e66ae26df8b1130af19">
+        <source>Your payment was unsuccessful. Please try again</source>
+        <target>Uw betaling is niet gelukt. Probeer het alstublieft opnieuw.</target>
+      </trans-unit>
+      <trans-unit id="168311f4704a38d29845d0328045011a">
+        <source>iDEAL | Wero</source>
+        <target>iDEAL | Wero</target>
       </trans-unit>
     </body>
   </file>

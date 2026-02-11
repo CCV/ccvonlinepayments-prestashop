@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4b653a9132f8759517a29dce2e9a45b8",
+    "content-hash": "5c13ccf0a6e62ad7540855eb20e08449",
     "packages": [
         {
             "name": "brick/phonenumber",
@@ -60,16 +60,16 @@
         },
         {
             "name": "ccv/images",
-            "version": "1.1.4",
+            "version": "1.1.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CCV/ccvonlinepayments-images.git",
-                "reference": "467be685b9c71c96cfe7ec654cec49e8b0ea81e0"
+                "reference": "4d63054ab2eefe284413c0ef4d1d83f2cadf8b03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CCV/ccvonlinepayments-images/zipball/467be685b9c71c96cfe7ec654cec49e8b0ea81e0",
-                "reference": "467be685b9c71c96cfe7ec654cec49e8b0ea81e0",
+                "url": "https://api.github.com/repos/CCV/ccvonlinepayments-images/zipball/4d63054ab2eefe284413c0ef4d1d83f2cadf8b03",
+                "reference": "4d63054ab2eefe284413c0ef4d1d83f2cadf8b03",
                 "shasum": ""
             },
             "type": "library",
@@ -87,9 +87,9 @@
             ],
             "support": {
                 "issues": "https://github.com/CCV/ccvonlinepayments-images/issues",
-                "source": "https://github.com/CCV/ccvonlinepayments-images/tree/v1.1.4"
+                "source": "https://github.com/CCV/ccvonlinepayments-images/tree/v1.1.6"
             },
-            "time": "2024-07-29T08:31:33+00:00"
+            "time": "2026-02-11T12:43:04+00:00"
         },
         {
             "name": "ccv/php-lib",
@@ -142,16 +142,16 @@
         },
         {
             "name": "giggsey/libphonenumber-for-php",
-            "version": "9.0.10",
+            "version": "9.0.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/giggsey/libphonenumber-for-php.git",
-                "reference": "727af7896f37194f7417def96b2140481668a28c"
+                "reference": "c415b68b44f8f6d7bb0de79769de8b2189d8a055"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/727af7896f37194f7417def96b2140481668a28c",
-                "reference": "727af7896f37194f7417def96b2140481668a28c",
+                "url": "https://api.github.com/repos/giggsey/libphonenumber-for-php/zipball/c415b68b44f8f6d7bb0de79769de8b2189d8a055",
+                "reference": "c415b68b44f8f6d7bb0de79769de8b2189d8a055",
                 "shasum": ""
             },
             "require": {
@@ -165,7 +165,7 @@
             "require-dev": {
                 "ext-dom": "*",
                 "friendsofphp/php-cs-fixer": "^3.71",
-                "infection/infection": "^0.28.0",
+                "infection/infection": "^0.29|^0.31.0",
                 "nette/php-generator": "^4.1",
                 "php-coveralls/php-coveralls": "^2.7",
                 "phpstan/extension-installer": "^1.4.3",
@@ -214,7 +214,7 @@
                 "issues": "https://github.com/giggsey/libphonenumber-for-php/issues",
                 "source": "https://github.com/giggsey/libphonenumber-for-php"
             },
-            "time": "2025-07-18T06:47:04+00:00"
+            "time": "2026-01-30T13:34:38+00:00"
         },
         {
             "name": "giggsey/locale",
@@ -274,16 +274,16 @@
         },
         {
             "name": "php-curl-class/php-curl-class",
-            "version": "12.0.0",
+            "version": "12.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-curl-class/php-curl-class.git",
-                "reference": "7a8f05efb18bb865dbce864b8fd34d4f5d920c74"
+                "reference": "430cdfd91dd6f14483d831df97cff5c776814782"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/7a8f05efb18bb865dbce864b8fd34d4f5d920c74",
-                "reference": "7a8f05efb18bb865dbce864b8fd34d4f5d920c74",
+                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/430cdfd91dd6f14483d831df97cff5c776814782",
+                "reference": "430cdfd91dd6f14483d831df97cff5c776814782",
                 "shasum": ""
             },
             "require": {
@@ -348,9 +348,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-curl-class/php-curl-class/issues",
-                "source": "https://github.com/php-curl-class/php-curl-class/tree/12.0.0"
+                "source": "https://github.com/php-curl-class/php-curl-class/tree/12.0.4"
             },
-            "time": "2025-03-25T18:04:16+00:00"
+            "time": "2025-12-11T18:04:38+00:00"
         },
         {
             "name": "psr/log",
@@ -404,7 +404,7 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.32.0",
+            "version": "v1.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
@@ -465,7 +465,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.32.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.33.0"
             },
             "funding": [
                 {
@@ -474,6 +474,10 @@
                 },
                 {
                     "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
                     "type": "github"
                 },
                 {
@@ -487,16 +491,11 @@
     "packages-dev": [
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.19",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "473a8c30e450d87099f76313edcbb90852f9afdf"
-            },
+            "version": "2.1.38",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/473a8c30e450d87099f76313edcbb90852f9afdf",
-                "reference": "473a8c30e450d87099f76313edcbb90852f9afdf",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dfaf1f530e1663aa167bc3e52197adb221582629",
+                "reference": "dfaf1f530e1663aa167bc3e52197adb221582629",
                 "shasum": ""
             },
             "require": {
@@ -541,20 +540,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-21T19:58:24+00:00"
+            "time": "2026-01-30T17:12:46+00:00"
         },
         {
             "name": "stancer/php-stubs-prestashop",
-            "version": "v8.2.0",
+            "version": "v8.2.2",
             "source": {
                 "type": "git",
                 "url": "https://gitlab.com/wearestancer/library/php-stubs-prestashop.git",
-                "reference": "2f6009c391ee5812de3c84a3250725d68a418951"
+                "reference": "d5855508c4517fc230e8c070bd2ba0f4eb2a3713"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://gitlab.com/api/v4/projects/wearestancer%2Flibrary%2Fphp-stubs-prestashop/repository/archive.zip?sha=2f6009c391ee5812de3c84a3250725d68a418951",
-                "reference": "2f6009c391ee5812de3c84a3250725d68a418951",
+                "url": "https://gitlab.com/api/v4/projects/wearestancer%2Flibrary%2Fphp-stubs-prestashop/repository/archive.zip?sha=d5855508c4517fc230e8c070bd2ba0f4eb2a3713",
+                "reference": "d5855508c4517fc230e8c070bd2ba0f4eb2a3713",
                 "shasum": ""
             },
             "type": "library",
@@ -566,9 +565,9 @@
             "homepage": "https://gitlab.com/wearestancer/library/php-stubs-prestashop",
             "support": {
                 "issues": "https://gitlab.com/wearestancer/library/php-stubs-prestashop/-/issues",
-                "source": "https://gitlab.com/wearestancer/library/php-stubs-prestashop/-/tree/v8.2.0"
+                "source": "https://gitlab.com/wearestancer/library/php-stubs-prestashop/-/tree/v8.2.2"
             },
-            "time": "2024-10-02T16:40:53+00:00"
+            "time": "2025-07-31T16:21:57+00:00"
         }
     ],
     "aliases": [],
@@ -578,5 +577,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
