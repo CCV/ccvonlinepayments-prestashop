@@ -78,6 +78,14 @@
         <source>Yes</source>
         <target>Ja</target>
       </trans-unit>
+      <trans-unit id="436f0d5de0cc638db6cf94097c26b88e">
+        <source>Your ip has been blocked. Please contact CCV.</source>
+        <target>Uw IP is geblokkeerd. Neem contact op met CCV.</target>
+      </trans-unit>
+      <trans-unit id="1b00969bb0ee5def0ce1709a6a575db9">
+        <source>An error (Http %status_code% error) has occurred. Please try again later or contact CCV.</source>
+        <target>Er heeft zich een fout (Http %status_code% error) voorgedaan. Probeer het later opnieuw of neem contact op met CCV.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -20,7 +20,7 @@ class CcvOnlinePayments extends PaymentModule
     {
         $this->name = 'ccvonlinepayments';
         $this->tab = 'payments_gateways';
-        $this->version = '1.7.0';
+        $this->version = '1.7.1';
         $this->ps_versions_compliancy = array('min' => '1.7.6.0', 'max' => '9.0.999');
         $this->author = 'CCV';
         $this->controllers = array('payment', 'webhook', 'return', 'statuspoll');
@@ -299,10 +299,25 @@ class CcvOnlinePayments extends PaymentModule
         if(trim($apiKey) !== "") {
             $api = $this->getApi($apiKey);
 
-            if(!$api->isKeyValid()) {
+            $apiError = null;
+            $httpStatusCode = null;
+            try {
+                if(!$api->isKeyValid()) {
+                    $apiError = 'Invalid Api Key';
+                }
+            }catch(\CCVOnlinePayments\Lib\Exception\ApiException $apiException) {
+                if($apiException->getHttpStatusCode() === 403) {
+                    $apiError = 'Your ip has been blocked. Please contact CCV.';
+                }else{
+                    $apiError = 'An error (Http %status_code% error) has occurred. Please try again later or contact CCV.';
+                    $httpStatusCode = $apiException->getHttpStatusCode();
+                }
+            }
+
+            if($apiError !== null) {
                 $adminController->warnings[] = $this->trans(
-                    'Invalid Api Key',
-                    [],
+                    $apiError,
+                    ['%status_code%' => $httpStatusCode],
                     "Modules.Ccvonlinepayments.Admin"
                 );
             }else{
