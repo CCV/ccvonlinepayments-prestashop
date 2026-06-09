@@ -22,7 +22,7 @@ CCV makes the following payment methods available in this plugin:
 
 # Requirements
 To support this plugin, the following requirements must be met:
--	PrestaShop 1.7.6.0 or higher
+-	PrestaShop last tested version is 9.0.999 any higher versions are not tested jet!
 -	PHP 7.2 or higher
 -	MyCCV account & API key*
 
